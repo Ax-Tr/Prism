@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  prism-db:
+    image: postgres:16-alpine
+    container_name: prism-postgres-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: prism
+      POSTGRES_USER: prism_user
+      POSTGRES_PASSWORD: prism_secure_password_2026
+    ports:
+      - "5432:5432"
+    volumes:
+      - prism_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prism_user -d prism"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  prism-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: prism-api-server
+    restart: unless-stopped
+    depends_on:
+      prism-db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: "postgresql://prism_user:prism_secure_password_2026@prism-db:5432/prism?schema=public"
+      JWT_SECRET: "prism-ai-bos-super-secure-production-jwt-key-2026"
+      JWT_EXPIRES_IN: "24h"
+      CORS_ORIGIN: "*"
+    ports:
+      - "5000:5000"
+    volumes:
+      - prism_uploads:/app/uploads
+
+  prism-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: prism-web-client
+    restart: unless-stopped
+    depends_on:
+      - prism-backend
+    ports:
+      - "3000:80"
+
+volumes:
+  prism_pgdata:
+    driver: local
+  prism_uploads:
+    driver: local

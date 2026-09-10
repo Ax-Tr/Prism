@@ -1,0 +1,308 @@
+// Prism Database Schema
+// Multi-Tenant AI-BOS Schema Definition
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id                    String                 @id @default(uuid())
+  name                  String
+  subdomain             String                 @unique
+  status                String                 @default("active")
+  settings              String                 @default("{\"default_timezone\":\"Asia/Kolkata\",\"mfa_required_roles\":[\"owner\",\"delegate\"],\"max_proof_file_size_mb\":25,\"auto_escalation_hours\":24,\"scoring_weights\":{\"task_completion\":0.40,\"speed\":0.20,\"discipline\":0.20,\"attendance\":0.20}}")
+  createdAt             DateTime               @default(now()) @map("created_at")
+  updatedAt             DateTime               @updatedAt @map("updated_at")
+
+  cryptoKeys            CryptoKey[]
+  departments           Department[]
+  users                 User[]
+  goals                 Goal[]
+  departmentPriorities  DepartmentPriority[]
+  tasks                 Task[]
+  taskProofs            TaskProof[]
+  taskHistories         TaskHistory[]
+  leaveRequests         LeaveRequest[]
+  continuityAssignments ContinuityAssignment[]
+  dailyScores           DailyScore[]
+  systemExceptions      SystemException[]
+  auditLogs             AuditLog[]
+
+  @@map("tenants")
+}
+
+model CryptoKey {
+  id                   String    @id @default(uuid())
+  tenantId             String    @map("tenant_id")
+  keyVersion           Int       @default(1) @map("key_version")
+  encryptedKeyMaterial String    @map("encrypted_key_material")
+  status               String    @default("active")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  shreddedAt           DateTime? @map("shredded_at")
+
+  tenant               Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, keyVersion])
+  @@map("crypto_keys")
+}
+
+model Department {
+  id             String               @id @default(uuid())
+  tenantId       String               @map("tenant_id")
+  name           String
+  code           String
+  parentId       String?              @map("parent_id")
+  headUserId     String?              @map("head_user_id")
+  delegateUserId String?              @map("delegate_user_id")
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+
+  tenant         Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  users          User[]               @relation("DepartmentUsers")
+  priorities     DepartmentPriority[]
+  tasks          Task[]
+
+  @@unique([tenantId, code])
+  @@map("departments")
+}
+
+model User {
+  id                  String      @id @default(uuid())
+  tenantId            String      @map("tenant_id")
+  departmentId        String?     @map("department_id")
+  email               String
+  passwordHash        String      @map("password_hash")
+  firstName           String      @map("first_name")
+  lastName            String      @map("last_name")
+  role                String      // owner, dept_head, employee, delegate, auditor
+  designation         String?
+  phone               String?
+  status              String      @default("active")
+  mfaEnabled          Boolean     @default(false) @map("mfa_enabled")
+  mfaSecret           String?     @map("mfa_secret")
+  failedLoginAttempts Int         @default(0) @map("failed_login_attempts")
+  lockoutUntil        DateTime?   @map("lockout_until")
+  lastLoginAt         DateTime?   @map("last_login_at")
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @updatedAt @map("updated_at")
+
+  tenant              Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  department          Department? @relation("DepartmentUsers", fields: [departmentId], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, email])
+  @@map("users")
+}
+
+model Goal {
+  id           String               @id @default(uuid())
+  tenantId     String               @map("tenant_id")
+  title        String
+  description  String?
+  targetMetric String?              @map("target_metric")
+  targetValue  Float?               @map("target_value")
+  currentValue Float                @default(0.0) @map("current_value")
+  unit         String?
+  startDate    String               @map("start_date")
+  targetDate   String               @map("target_date")
+  status       String               @default("active")
+  createdBy    String?              @map("created_by")
+  createdAt    DateTime             @default(now()) @map("created_at")
+  updatedAt    DateTime             @updatedAt @map("updated_at")
+
+  tenant       Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  priorities   DepartmentPriority[]
+
+  @@map("goals")
+}
+
+model DepartmentPriority {
+  id           String      @id @default(uuid())
+  tenantId     String      @map("tenant_id")
+  departmentId String      @map("department_id")
+  goalId       String?     @map("goal_id")
+  title        String
+  rankOrder    Int         @default(1) @map("rank_order")
+  weight       Float       @default(1.0)
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  tenant       Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  department   Department  @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  goal         Goal?       @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  tasks        Task[]
+
+  @@map("department_priorities")
+}
+
+model Task {
+  id             String              @id @default(uuid())
+  tenantId       String              @map("tenant_id")
+  departmentId   String              @map("department_id")
+  priorityId     String?             @map("priority_id")
+  title          String
+  description    String?
+  assignedTo     String?             @map("assigned_to")
+  createdBy      String              @map("created_by")
+  approverId     String?             @map("approver_id")
+  priority       String              @default("medium")
+  status         String              @default("pending")
+  dueDate        DateTime            @map("due_date")
+  startedAt      DateTime?           @map("started_at")
+  submittedAt    DateTime?           @map("submitted_at")
+  completedAt    DateTime?           @map("completed_at")
+  proofRequired  Boolean             @default(true) @map("proof_required")
+  estimatedHours Float?              @map("estimated_hours")
+  actualHours    Float?              @map("actual_hours")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+
+  tenant         Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  department     Department          @relation(fields: [departmentId], references: [id])
+  priorityRel    DepartmentPriority? @relation(fields: [priorityId], references: [id], onDelete: SetNull)
+  proofs         TaskProof[]
+  history        TaskHistory[]
+
+  @@map("tasks")
+}
+
+model TaskProof {
+  id                 String    @id @default(uuid())
+  tenantId           String    @map("tenant_id")
+  taskId             String    @map("task_id")
+  submittedBy        String    @map("submitted_by")
+  proofType          String    @map("proof_type")
+  proofUrl           String?   @map("proof_url")
+  filePath           String?   @map("file_path")
+  fileName           String?   @map("file_name")
+  fileSizeBytes      Int?      @map("file_size_bytes")
+  notes              String?
+  aiValidationStatus String?   @default("unverified") @map("ai_validation_status")
+  aiValidationNotes  String?   @map("ai_validation_notes")
+  submittedAt        DateTime  @default(now()) @map("submitted_at")
+  reviewedBy         String?   @map("reviewed_by")
+  reviewedAt         DateTime? @map("reviewed_at")
+  approvalStatus     String?   @default("pending") @map("approval_status")
+
+  tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  task               Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("task_proofs")
+}
+
+model TaskHistory {
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  taskId         String   @map("task_id")
+  actorId        String   @map("actor_id")
+  previousStatus String?  @map("previous_status")
+  newStatus      String   @map("new_status")
+  notes          String?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  task           Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("task_history")
+}
+
+model LeaveRequest {
+  id                  String   @id @default(uuid())
+  tenantId            String   @map("tenant_id")
+  userId              String   @map("user_id")
+  handoverUserId      String?  @map("handover_user_id")
+  startDate           String   @map("start_date")
+  endDate             String   @map("end_date")
+  reason              String?
+  status              String   @default("pending")
+  approvedBy          String?  @map("approved_by")
+  continuityActivated Boolean  @default(false) @map("continuity_activated")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  tenant              Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("leave_requests")
+}
+
+model ContinuityAssignment {
+  id                  String    @id @default(uuid())
+  tenantId            String    @map("tenant_id")
+  leaveRequestId      String?   @map("leave_request_id")
+  taskId              String    @map("task_id")
+  originalAssigneeId  String    @map("original_assignee_id")
+  temporaryAssigneeId String    @map("temporary_assignee_id")
+  status              String    @default("active")
+  assignedAt          DateTime  @default(now()) @map("assigned_at")
+  returnedAt          DateTime? @map("returned_at")
+
+  tenant              Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("continuity_assignments")
+}
+
+model DailyScore {
+  id                  String   @id @default(uuid())
+  tenantId            String   @map("tenant_id")
+  userId              String   @map("user_id")
+  departmentId        String?  @map("department_id")
+  scoreDate           String   @map("score_date")
+  totalScore          Float    @map("total_score")
+  taskCompletionScore Float    @default(0) @map("task_completion_score")
+  speedScore          Float    @default(0) @map("speed_score")
+  disciplineScore     Float    @default(0) @map("discipline_score")
+  attendanceScore     Float    @default(0) @map("attendance_score")
+  tasksAssigned       Int      @default(0) @map("tasks_assigned")
+  tasksCompleted      Int      @default(0) @map("tasks_completed")
+  proofsApproved      Int      @default(0) @map("proofs_approved")
+  calculatedAt        DateTime @default(now()) @map("calculated_at")
+
+  tenant              Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId, scoreDate])
+  @@map("daily_scores")
+}
+
+model SystemException {
+  id             String    @id @default(uuid())
+  tenantId       String    @map("tenant_id")
+  departmentId   String?   @map("department_id")
+  taskId         String?   @map("task_id")
+  assignedUserId String?   @map("assigned_user_id")
+  exceptionType  String    @map("exception_type")
+  severity       String    @default("medium")
+  title          String
+  details        String?
+  status         String    @default("open")
+  acknowledgedBy String?   @map("acknowledged_by")
+  acknowledgedAt DateTime? @map("acknowledged_at")
+  resolvedBy     String?   @map("resolved_by")
+  resolvedAt     DateTime? @map("resolved_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("system_exceptions")
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  tenantId     String   @map("tenant_id")
+  actorId      String?  @map("actor_id")
+  actorRole    String?  @map("actor_role")
+  action       String
+  resourceType String   @map("resource_type")
+  resourceId   String?  @map("resource_id")
+  ipAddress    String?  @map("ip_address")
+  userAgent    String?  @map("user_agent")
+  payload      String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("audit_log")
+}
