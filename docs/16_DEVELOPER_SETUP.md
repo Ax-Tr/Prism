@@ -25,3 +25,18 @@ npm install
 npm run dev
 ```
 Express API will listen on `http://localhost:5000`.
+
+---
+
+## 2. Branching Strategy (GitHub Flow)
+
+All development follows **GitHub Flow**:
+- **`main`** is always stable, tested, and deployable.
+- Never push directly to `main`.
+- Create short-lived branches prefixed by type:
+  - `feature/*` — e.g. `feature/add-login`
+  - `fix/*` — e.g. `fix/invoice-bug`
+  - `refactor/*` — e.g. `refactor/api-client`
+  - `docs/*` — e.g. `docs/api-guide`
+- Open a Pull Request (PR) to `main`, wait for CI checks to pass, review, and merge.
+- Refer to [CONTRIBUTING.md](../CONTRIBUTING.md) for full branch naming conventions and PR guidelines.
