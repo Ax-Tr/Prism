@@ -12,22 +12,22 @@ export const TopHeader: React.FC = () => {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <header className="sticky top-0 z-40 w-full glass-panel border-b border-white/10 px-4 md:px-8 py-3.5 flex items-center justify-between transition-colors">
+    <header className="sticky top-0 z-40 w-full glass-panel border-b border-white/10 px-5 md:px-10 py-3 flex items-center justify-between transition-colors">
       {/* Brand & Workspace Info */}
       <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('landing')}>
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-sky-500/20">
-          <Layers className="w-5 h-5 text-white" />
+        <div className="w-9 h-9 rounded-full border border-white/20 bg-white/[0.03] flex items-center justify-center shadow-[0_0_24px_rgba(129,140,248,0.14)]">
+          <Layers className="w-4 h-4 text-indigo-200" strokeWidth={1.4} />
         </div>
         <div>
           <div className="flex items-center space-x-2">
-            <span className="font-outfit font-bold text-lg tracking-wider text-slate-100 dark:text-slate-100 light:text-slate-900 uppercase">
+            <span className="font-outfit font-light text-lg tracking-[0.28em] text-slate-100 dark:text-slate-100 light:text-slate-900 uppercase">
               PRISM
             </span>
-            <span className="px-2 py-0.5 text-[10px] font-mono tracking-widest bg-sky-500/10 border border-sky-500/20 text-sky-400 rounded-full">
+            <span className="px-2 py-0.5 text-[9px] font-mono tracking-widest bg-white/[0.03] border border-white/10 text-indigo-300 rounded-full">
               v2.4
             </span>
           </div>
-          <p className="text-[11px] text-slate-400 font-mono tracking-wide">
+          <p className="text-[9px] text-slate-500 font-mono tracking-[0.16em]">
             PERFORMANCE REFRACTED
           </p>
         </div>
@@ -35,7 +35,7 @@ export const TopHeader: React.FC = () => {
 
       {/* Center Navigation quick links (if logged in) */}
       {isAuthenticated && activeTab !== 'landing' && (
-        <div className="hidden lg:flex items-center space-x-1 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-slate-300">
+        <div className="hidden lg:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/10 text-[10px] font-mono tracking-[0.12em] uppercase text-slate-400">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span>Luminary Operational Grid Active</span>
         </div>
@@ -47,7 +47,7 @@ export const TopHeader: React.FC = () => {
         <button
           onClick={toggleTheme}
           title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Theme`}
-          className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-all"
+          className="p-2 rounded-full bg-white/[0.03] hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white transition-all"
         >
           {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-sky-600" />}
         </button>
@@ -57,7 +57,7 @@ export const TopHeader: React.FC = () => {
           <button
             onClick={() => setNotificationsOpen(!notificationsOpen)}
             title="Notifications & Signals"
-            className="relative p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-all"
+            className="relative p-2 rounded-full bg-white/[0.03] hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white transition-all"
           >
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
@@ -86,7 +86,7 @@ export const TopHeader: React.FC = () => {
         ) : (
           <button
             onClick={() => setActiveTab('login')}
-            className="flex items-center space-x-2 px-4 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold text-xs transition-all shadow-md shadow-sky-500/20"
+            className="flex items-center space-x-2 px-4 py-2 border border-white/20 bg-white text-black hover:bg-zinc-200 font-mono uppercase tracking-widest font-bold text-[10px] transition-all shadow-[0_0_20px_rgba(255,255,255,0.08)]"
           >
             <UserIcon className="w-3.5 h-3.5" />
             <span>Sign In</span>

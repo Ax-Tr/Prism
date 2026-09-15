@@ -37,7 +37,7 @@ export const BottomDock: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center prism-float">
       {/* Expanded Secondary Menu */}
       {moreOpen && (
         <div className="mb-3 p-3 glass-panel rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl grid grid-cols-2 sm:grid-cols-4 gap-2 animate-in fade-in slide-in-from-bottom-3 duration-200">
@@ -62,16 +62,16 @@ export const BottomDock: React.FC = () => {
       )}
 
       {/* Main Dock Container */}
-      <nav className="glass-panel px-3 py-2 rounded-full border border-white/15 shadow-2xl backdrop-blur-2xl flex items-center space-x-1">
+      <nav className="glass-panel px-2 py-2 rounded-full border border-white/15 shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur-2xl flex items-center space-x-1">
         {mainTabs.map(tab => {
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab.id)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-full text-[10px] font-mono uppercase tracking-[0.1em] transition-all duration-200 ${
                 isActive
-                  ? 'bg-gradient-to-r from-sky-500/20 to-indigo-500/20 text-sky-400 border border-sky-400/40 shadow-lg shadow-sky-500/20 scale-105'
+                  ? 'bg-gradient-to-r from-indigo-500/20 to-purple-500/15 text-indigo-200 border border-indigo-300/30 shadow-lg shadow-indigo-500/10 scale-105'
                   : 'text-slate-400 hover:text-slate-100 hover:bg-white/5'
               }`}
             >

@@ -75,15 +75,15 @@ const AppContent: React.FC = () => {
   const isLanding = activeTab === 'landing';
 
   return (
-    <div className="min-h-screen relative flex flex-col font-outfit">
+    <div className={`min-h-screen relative flex flex-col font-outfit ${isLanding ? '' : 'prism-workspace prism-enter'}`}>
       {!isLanding && <TopHeader />}
       <main className="flex-1">
         <ErrorBoundary fallbackTitle="Prism View Exception Intercepted">
           <WorkspaceRouter />
         </ErrorBoundary>
       </main>
-      <NotificationsDrawer />
-      <LuminaryDrawer />
+      {!isLanding && <NotificationsDrawer />}
+      {!isLanding && <LuminaryDrawer />}
       {!isLanding && <BottomDock />}
     </div>
   );
