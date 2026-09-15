@@ -19,3 +19,8 @@
    npm start
    ```
 2. Deploy server process using Docker, Render, AWS ECS, or DigitalOcean App Platform.
+
+## 3. Continuous Integration (CI) Pipeline
+- GitHub Actions CI workflow is configured at `.github/workflows/ci.yml`.
+- Automatically triggers on `push` and `pull_request` to `main` and `master` branches (as well as manual triggers via `workflow_dispatch`).
+- Validates both Frontend and Backend dependencies, Prisma generation, and TypeScript builds.
