@@ -1,4 +1,5 @@
 import { Employee, Task, KPI, Review360, AttendanceLog, RoadmapNode, CheckpointApproval, SynthesisReport, NotificationItem, User } from '../types';
+import { LIVE_EMPLOYEES } from './liveEmployees';
 
 export const INITIAL_USERS: User[] = [
   {
@@ -8,419 +9,334 @@ export const INITIAL_USERS: User[] = [
     role: 'CEO',
     department: 'Executive',
     title: 'Chief Executive Officer',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'
+    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=1080&auto=format&fit=crop'
   },
   {
     id: 'u2',
-    name: 'Neha Gupta',
-    email: 'engineering@nexora.com',
+    name: 'Priya Patel',
+    email: 'priya@nexora.com',
     role: 'DEPT_HEAD',
-    department: 'Engineering',
-    title: 'VP of Engineering',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80'
+    department: 'User Experience',
+    title: 'VP of Product Design',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1080&auto=format&fit=crop'
   },
   {
     id: 'u3',
-    name: 'Vikram Singh',
-    email: 'product@nexora.com',
-    role: 'DEPT_HEAD',
-    department: 'Product',
-    title: 'Head of Product',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80'
-  },
-  {
-    id: 'u4',
     name: 'Arjun Sharma',
     email: 'arjun@nexora.com',
     role: 'MANAGER',
-    department: 'Engineering',
-    title: 'Lead Architect',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80'
+    department: 'Core Architecture',
+    title: 'Senior Frontend Engineer',
+    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=1080&auto=format&fit=crop'
+  },
+  {
+    id: 'u4',
+    name: 'Ravi Verma',
+    email: 'ravi@nexora.com',
+    role: 'EMPLOYEE',
+    department: 'Data Infrastructure',
+    title: 'Backend Developer',
+    avatar: 'https://images.unsplash.com/photo-1531384441138-2736e62e0919?q=80&w=1080&auto=format&fit=crop'
   }
 ];
 
-export const INITIAL_EMPLOYEES: Employee[] = [
-  {
-    id: 'e1',
-    name: 'Arjun Sharma',
-    role: 'Lead Architect',
-    department: 'Engineering',
-    email: 'arjun@nexora.com',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
-    bandwidthLoad: 88,
-    focusArea: 'Auth Service Migration & Security Hardening',
-    activeTasksCount: 4,
-    skills: ['React 19', 'TypeScript', 'PostgreSQL', 'System Architecture', 'Rust'],
-    bio: 'Pioneering distributed infrastructure and security frameworks for Nexora Prism.',
-    location: 'Bengaluru / Hybrid',
-    oneOnOneNotes: {
-      lastMeeting: '02 Nov 2026',
-      actionItems: ['Finalize OAuth 2.1 pkce flow', 'Review junior dev PRs for API gateway'],
-      talkingPoints: ['Career progression to Staff Engineer', 'Capacity management for Q4']
-    }
-  },
-  {
-    id: 'e2',
-    name: 'Neha Gupta',
-    role: 'VP of Engineering',
-    department: 'Engineering',
-    email: 'neha@nexora.com',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80',
-    bandwidthLoad: 75,
-    focusArea: 'Engineering Ops & Resource Allocation',
-    activeTasksCount: 3,
-    skills: ['Leadership', 'Engineering Management', 'CI/CD', 'Cloud Infra'],
-    location: 'Delhi / Remote'
-  },
-  {
-    id: 'e3',
-    name: 'Vikram Singh',
-    role: 'Head of Product',
-    department: 'Product',
-    email: 'vikram@nexora.com',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
-    bandwidthLoad: 82,
-    focusArea: 'Roadmap Refinement & User Analytics',
-    activeTasksCount: 5,
-    skills: ['Product Strategy', 'OKR Framing', 'User Journey Mapping', 'A/B Testing'],
-    location: 'Mumbai / Onsite'
-  },
-  {
-    id: 'e4',
-    name: 'Kavya Reddy',
-    role: 'Lead UX Designer',
-    department: 'Design',
-    email: 'kavya@nexora.com',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-    bandwidthLoad: 92,
-    focusArea: 'Design System v2 & Glassmorphic UI Tokens',
-    activeTasksCount: 6,
-    skills: ['Figma', 'UI/UX Design', 'Design Systems', 'Micro-interactions'],
-    location: 'Hyderabad / Hybrid'
-  },
-  {
-    id: 'e5',
-    name: 'Rohan Mehta',
-    role: 'Senior Backend Engineer',
-    department: 'Engineering',
-    email: 'rohan@nexora.com',
-    avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=150&q=80',
-    bandwidthLoad: 68,
-    focusArea: 'Database Query Optimization & Caching',
-    activeTasksCount: 3,
-    skills: ['Node.js', 'Redis', 'GraphQL', 'Docker', 'Kubernetes'],
-    location: 'Bengaluru / Remote'
-  },
-  {
-    id: 'e6',
-    name: 'Aditya Kumar',
-    role: 'AI / ML Specialist',
-    department: 'Data & AI',
-    email: 'aditya@nexora.com',
-    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=150&q=80',
-    bandwidthLoad: 85,
-    focusArea: 'Luminary COO LLM Prompt Tuning & RAG Integration',
-    activeTasksCount: 4,
-    skills: ['PyTorch', 'LLMs', 'Vector Databases', 'Python', 'Prompt Engineering'],
-    location: 'Pune / Remote'
-  },
-  {
-    id: 'e7',
-    name: 'Ananya Reddy',
-    role: 'Product Marketing Manager',
-    department: 'Marketing',
-    email: 'ananya@nexora.com',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80',
-    bandwidthLoad: 64,
-    focusArea: 'Q4 GTM Launch Strategy & Positioning',
-    activeTasksCount: 2,
-    skills: ['GTM Strategy', 'Copywriting', 'SEO', 'Product Launches'],
-    location: 'Bengaluru / Hybrid'
-  },
-  {
-    id: 'e8',
-    name: 'Karan Patel',
-    role: 'DevOps & Security Specialist',
-    department: 'Engineering',
-    email: 'karan@nexora.com',
-    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80',
-    bandwidthLoad: 78,
-    focusArea: 'Zero-Trust Architecture & CI/CD Pipeline Automation',
-    activeTasksCount: 4,
-    skills: ['Terraform', 'AWS', 'Cybersecurity', 'DevSecOps', 'Prometheus'],
-    location: 'Ahmedabad / Remote'
+export const INITIAL_EMPLOYEES: Employee[] = LIVE_EMPLOYEES.map((e: any) => ({
+  id: e.id,
+  name: e.name,
+  role: e.role,
+  department: e.department,
+  email: `${e.name.toLowerCase().replace(/\s+/g, '.')}@nexora.com`,
+  avatar: e.avatar,
+  bandwidthLoad: e.performanceScore || 85,
+  focusArea: e.recentFeedback || 'Core Platform Architecture & Scaling',
+  activeTasksCount: e.skills?.length || 4,
+  skills: e.skills || ['Architecture', 'TypeScript', 'React', 'Cloud'],
+  bio: `${e.role} in ${e.department} at Nexora Prism. Stage: ${e.stage || 'Established'}.`,
+  location: 'Bengaluru / Hybrid',
+  oneOnOneNotes: {
+    lastMeeting: '12 Oct 2026',
+    actionItems: ['Review quarterly milestones', 'Finalize system design review'],
+    talkingPoints: ['Career progression', 'Sprint bandwidth optimization']
   }
-];
+}));
 
 export const INITIAL_TASKS: Task[] = [
   {
-    id: 't1',
-    title: 'OAuth 2.1 PKCE Flow Implementation',
-    description: 'Enforce PKCE flow across all client authentication endpoints to secure mobile and SPA tokens.',
+    id: 't-101',
+    title: 'Migrate Session Token to Rotating Refresh Token',
+    description: 'Security enhancement to minimize stolen token replay attacks using HMAC signature verification.',
     status: 'IN_FLUX',
     priority: 'CRITICAL',
     assigneeId: 'e1',
     assigneeName: 'Arjun Sharma',
-    assigneeAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
-    department: 'Engineering',
-    points: 8,
-    estimatedHours: 24,
-    loggedHours: 18,
+    assigneeAvatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=1080&auto=format&fit=crop',
+    department: 'Core Architecture',
+    points: 120,
+    estimatedHours: 8,
+    loggedHours: 5.5,
     subtasks: [
-      { id: 'st1', title: 'Update Auth Server spec', completed: true },
-      { id: 'st2', title: 'Implement PKCE challenge validation', completed: true },
-      { id: 'st3', title: 'Integration testing with frontend SPA', completed: false }
-    ]
+      { id: 'st-1', title: 'Implement Redis token blocklist', completed: true },
+      { id: 'st-2', title: 'Update AuthContext interceptors', completed: true },
+      { id: 'st-3', title: 'Add rotation unit tests', completed: false },
+    ],
   },
   {
-    id: 't2',
-    title: 'Design System v2 Glass Tokens',
-    description: 'Refactor Tailwind configuration and base components to utilize refined glassmorphism theme tokens.',
-    status: 'IN_FLUX',
-    priority: 'HIGH',
-    assigneeId: 'e4',
-    assigneeName: 'Kavya Reddy',
-    assigneeAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-    department: 'Design',
-    points: 5,
-    estimatedHours: 16,
-    loggedHours: 12,
-    subtasks: [
-      { id: 'st4', title: 'Color palette definition', completed: true },
-      { id: 'st5', title: 'Component backdrop-blur audit', completed: false }
-    ]
-  },
-  {
-    id: 't3',
-    title: 'Luminary RAG Context Pipeline',
-    description: 'Connect internal vector database index to Luminary AI COO engine for real-time task synthesis.',
-    status: 'ORBIT',
-    priority: 'CRITICAL',
-    assigneeId: 'e6',
-    assigneeName: 'Aditya Kumar',
-    assigneeAvatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=150&q=80',
-    department: 'Data & AI',
-    points: 13,
-    estimatedHours: 40,
-    loggedHours: 38,
-    subtasks: [
-      { id: 'st6', title: 'Vector embeddings extraction', completed: true },
-      { id: 'st7', title: 'Cosine similarity ranking', completed: true }
-    ]
-  },
-  {
-    id: 't4',
-    title: 'PostgreSQL Read Replica Setup',
-    description: 'Provision multi-region read replicas to decrease query latency for analytical dashboard requests.',
-    status: 'DORMANT',
-    priority: 'MEDIUM',
-    assigneeId: 'e5',
-    assigneeName: 'Rohan Mehta',
-    assigneeAvatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=150&q=80',
-    department: 'Engineering',
-    points: 5,
-    estimatedHours: 20,
-    loggedHours: 0,
-    subtasks: [
-      { id: 'st8', title: 'AWS RDS Replica configuration', completed: false }
-    ]
-  },
-  {
-    id: 't5',
-    title: 'Zero-Trust Network Perimeter Audit',
-    description: 'Execute automated dependency scan and penetration test on public ingress points.',
+    id: 't-102',
+    title: 'Design Glassmorphism Spectrum Lens Tokens',
+    description: 'Complete HSL color mapping for Output, Risk, Return, Growth, Presence, and Wellbeing lenses.',
     status: 'TRANSMITTED',
     priority: 'HIGH',
-    assigneeId: 'e8',
-    assigneeName: 'Karan Patel',
-    assigneeAvatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80',
-    department: 'Engineering',
-    points: 3,
-    estimatedHours: 12,
-    loggedHours: 12,
+    assigneeId: 'e2',
+    assigneeName: 'Neha Gupta',
+    assigneeAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1080&auto=format&fit=crop',
+    department: 'User Experience',
+    points: 90,
+    estimatedHours: 6,
+    loggedHours: 6,
     subtasks: [
-      { id: 'st9', title: 'Vulnerability scan output review', completed: true }
-    ]
-  }
+      { id: 'st-4', title: 'Create Tailwind color palette', completed: true },
+      { id: 'st-5', title: 'Export Figma design tokens', completed: true },
+    ],
+  },
+  {
+    id: 't-103',
+    title: 'PostgreSQL Multi-Tenant Schema Validation',
+    description: 'Enforce tenant_id isolation in all raw queries and Prisma middleware.',
+    status: 'ORBIT',
+    priority: 'CRITICAL',
+    assigneeId: 'e3',
+    assigneeName: 'Vikram Singh',
+    assigneeAvatar: 'https://images.unsplash.com/photo-1531384441138-2736e62e0919?q=80&w=1080&auto=format&fit=crop',
+    department: 'Data Infrastructure',
+    points: 150,
+    estimatedHours: 12,
+    loggedHours: 10,
+    subtasks: [
+      { id: 'st-6', title: 'Write tenant isolation middleware', completed: true },
+      { id: 'st-7', title: 'Simulate cross-tenant leak attempt', completed: true },
+      { id: 'st-8', title: 'Submit proof of verification', completed: true },
+    ],
+  },
+  {
+    id: 't-104',
+    title: 'Real-time WebSocket Telemetry Feed',
+    description: 'Stream live performance scores and team activity signals to Spectrum dashboard.',
+    status: 'DORMANT',
+    priority: 'MEDIUM',
+    assigneeId: 'e6',
+    assigneeName: 'Aditya Kumar',
+    assigneeAvatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=1080&auto=format&fit=crop',
+    department: 'Data Infrastructure',
+    points: 80,
+    estimatedHours: 5,
+    loggedHours: 0,
+    subtasks: [
+      { id: 'st-9', title: 'Setup WebSocket gateway in Express', completed: false },
+      { id: 'st-10', title: 'Connect frontend subscriber hook', completed: false },
+    ],
+  },
 ];
 
 export const INITIAL_KPIS: KPI[] = [
   {
-    id: 'k1',
-    name: 'Code Review Turnaround',
-    target: 24,
-    current: 18,
-    unit: 'hrs',
-    trend: 'up',
-    weight: 25,
-    status: 'on_track',
-    category: 'Engineering'
-  },
-  {
-    id: 'k2',
-    name: 'Sprint Velocity',
-    target: 42,
-    current: 47,
+    id: 'kpi-1',
+    name: 'Platform Engineering Velocity',
+    target: 95,
+    current: 92,
     unit: 'pts',
     trend: 'up',
-    weight: 30,
+    weight: 1.2,
     status: 'on_track',
-    category: 'Product'
+    category: 'Core Engineering',
   },
   {
-    id: 'k3',
-    name: 'Bug Escape Rate',
-    target: 2.0,
-    current: 1.2,
+    id: 'kpi-2',
+    name: 'Security & Auth Reliability',
+    target: 99.9,
+    current: 99.98,
     unit: '%',
     trend: 'up',
-    weight: 20,
+    weight: 1.5,
     status: 'on_track',
-    category: 'Quality'
+    category: 'Security & Compliance',
   },
   {
-    id: 'k4',
-    name: 'Documentation Coverage',
-    target: 90,
-    current: 87,
+    id: 'kpi-3',
+    name: 'Team Capacity Utilization',
+    target: 85,
+    current: 82,
     unit: '%',
     trend: 'stable',
-    weight: 15,
-    status: 'at_risk',
-    category: 'Engineering'
+    weight: 1.0,
+    status: 'on_track',
+    category: 'Human Capital',
   },
   {
-    id: 'k5',
-    name: 'Mentorship & 1:1 Cadence',
-    target: 4,
-    current: 4,
-    unit: 'hrs/mo',
-    trend: 'stable',
-    weight: 10,
+    id: 'kpi-4',
+    name: 'Tenant Data Isolation SLA',
+    target: 100,
+    current: 100,
+    unit: '%',
+    trend: 'up',
+    weight: 2.0,
     status: 'on_track',
-    category: 'People'
-  }
+    category: 'Security & Compliance',
+  },
 ];
 
 export const INITIAL_REVIEWS_360: Review360[] = [
   {
-    id: 'r1',
+    id: 'rev-1',
     reviewer: 'Neha Gupta',
     reviewee: 'Arjun Sharma',
     relation: 'Peer',
-    date: 'Nov 2026',
+    date: '2026-10-15',
     scores: {
-      communication: 92,
-      technical: 96,
-      leadership: 88,
-      collaboration: 90,
-      innovation: 95
+      technical: 95,
+      communication: 88,
+      leadership: 92,
+      innovation: 94,
+      collaboration: 96,
     },
-    strengths: 'Arjun consistently delivers exceptional architecture specs. His auth service refactoring plan was incredibly thorough.',
-    improvements: 'Could delegate more junior task reviews to free up strategic planning bandwidth.'
+    strengths: 'Outstanding architecture foresight and mentoring of junior engineers.',
+    improvements: 'Can delegate more implementation tasks to focus on strategic roadmap.',
   },
   {
-    id: 'r2',
-    reviewer: 'Vikram Singh',
-    reviewee: 'Kavya Reddy',
-    relation: 'Peer',
-    date: 'Oct 2026',
+    id: 'rev-2',
+    reviewer: 'Arjun Sharma',
+    reviewee: 'Vikram Singh',
+    relation: 'Manager',
+    date: '2026-10-18',
     scores: {
-      communication: 95,
       technical: 90,
-      leadership: 92,
-      collaboration: 94,
-      innovation: 98
+      communication: 85,
+      leadership: 82,
+      innovation: 88,
+      collaboration: 92,
     },
-    strengths: 'Outstanding design vision and rapid turnaround on design system v2 interactive tokens.',
-    improvements: 'Ensure accessibility audit comments are flagged in Figma components before design handoff.'
-  }
+    strengths: 'Strong database optimization and reliable API delivery.',
+    improvements: 'Improve cross-functional documentation for frontend consumers.',
+  },
 ];
 
 export const INITIAL_ATTENDANCE: AttendanceLog[] = [
-  { id: 'a1', employeeId: 'e1', employeeName: 'Arjun Sharma', date: '2026-11-08', status: 'Present', checkInTime: '09:14 AM' },
-  { id: 'a2', employeeId: 'e2', employeeName: 'Neha Gupta', date: '2026-11-08', status: 'Remote', checkInTime: '08:50 AM' },
-  { id: 'a3', employeeId: 'e3', employeeName: 'Vikram Singh', date: '2026-11-08', status: 'Present', checkInTime: '09:05 AM' },
-  { id: 'a4', employeeId: 'e4', employeeName: 'Kavya Reddy', date: '2026-11-08', status: 'Present', checkInTime: '09:30 AM' },
-  { id: 'a5', employeeId: 'e5', employeeName: 'Rohan Mehta', date: '2026-11-12', status: 'On Leave', anomalyFlag: 'Mass absence on Nov 12 - 38% of team on leave. Investigate team morale & upcoming sprint deadline.' }
+  {
+    id: 'att-1',
+    employeeId: 'e1',
+    employeeName: 'Arjun Sharma',
+    date: '2026-11-03',
+    checkInTime: '09:15 AM',
+    status: 'Present',
+  },
+  {
+    id: 'att-2',
+    employeeId: 'e2',
+    employeeName: 'Neha Gupta',
+    date: '2026-11-03',
+    checkInTime: '09:30 AM',
+    status: 'Remote',
+  },
+  {
+    id: 'att-3',
+    employeeId: 'e3',
+    employeeName: 'Vikram Singh',
+    date: '2026-11-03',
+    checkInTime: '09:00 AM',
+    status: 'Present',
+  },
 ];
 
 export const INITIAL_ROADMAP: RoadmapNode[] = [
-  { id: 'm1', title: 'Authentication Service Core', phase: 'Phase 1', status: 'completed', progress: 100, targetDate: '15 Oct', leadPerson: 'Arjun S.', dependencies: [] },
-  { id: 'm2', title: 'Design System v2 Refactor', phase: 'Phase 1', status: 'completed', progress: 100, targetDate: '30 Oct', leadPerson: 'Kavya R.', dependencies: [] },
-  { id: 'm3', title: 'API Gateway & Rate Limiting', phase: 'Phase 2', status: 'in_progress', progress: 75, targetDate: '20 Nov', leadPerson: 'Rohan M.', dependencies: ['m1'] },
-  { id: 'm4', title: 'Luminary AI COO RAG Engine', phase: 'Phase 2', status: 'in_progress', progress: 60, targetDate: '30 Nov', leadPerson: 'Aditya K.', dependencies: ['m1', 'm3'] },
-  { id: 'm5', title: 'Beta Customer Onboarding', phase: 'Phase 3', status: 'upcoming', progress: 15, targetDate: '15 Dec', leadPerson: 'Vikram S.', dependencies: ['m4'] },
-  { id: 'm6', title: 'Global Infrastructure Scaling', phase: 'Phase 3', status: 'upcoming', progress: 0, targetDate: '15 Jan', leadPerson: 'Karan P.', dependencies: ['m3'] }
+  {
+    id: 'rm-1',
+    title: 'Enterprise Single-Sign-On & MFA',
+    phase: 'Q1 2026',
+    status: 'completed',
+    leadPerson: 'Arjun Sharma',
+    targetDate: '2026-03-31',
+    progress: 100,
+    dependencies: [],
+  },
+  {
+    id: 'rm-2',
+    title: 'Prism Multi-Tenant RLS Database Grid',
+    phase: 'Q2 2026',
+    status: 'in_progress',
+    leadPerson: 'Vikram Singh',
+    targetDate: '2026-06-30',
+    progress: 75,
+    dependencies: ['rm-1'],
+  },
+  {
+    id: 'rm-3',
+    title: 'AI Luminary Co-Pilot Executive Synthesis',
+    phase: 'Q3 2026',
+    status: 'upcoming',
+    leadPerson: 'Aditya Kumar',
+    targetDate: '2026-09-30',
+    progress: 30,
+    dependencies: ['rm-2'],
+  },
 ];
 
 export const INITIAL_APPROVALS: CheckpointApproval[] = [
   {
-    id: 'ap1',
-    title: 'Multi-Region RDS Cluster Budget Increase',
-    category: 'Financial',
-    urgency: 'URGENT',
-    requestedBy: 'Rohan Mehta',
-    date: '07 Nov 2026',
+    id: 'appr-1',
+    title: 'Proof Review: Multi-Tenant Tenant Isolation Middleware',
+    category: 'Deployment',
+    urgency: 'HIGH',
+    requestedBy: 'Vikram Singh',
+    date: '16 Sep 2026',
     status: 'PENDING',
-    impactSummary: 'Requires $1,200/mo additional AWS cloud allocation for read-replica nodes.',
-    riskScore: 35
+    impactSummary: 'Verification of RLS constraints and Prisma query interceptors.',
+    riskScore: 25,
   },
   {
-    id: 'ap2',
-    title: 'Zero-Trust Identity Provider Migration',
+    id: 'appr-2',
+    title: 'Checkpoint Review: Spectrum Lens Color Calibration Tokens',
     category: 'Architectural',
-    urgency: 'HIGH',
-    requestedBy: 'Arjun Sharma',
-    date: '05 Nov 2026',
+    urgency: 'ROUTINE',
+    requestedBy: 'Neha Gupta',
+    date: '15 Sep 2026',
     status: 'APPROVED',
-    impactSummary: 'Migrate internal microservices to OAuth 2.1 PKCE bearer tokens.',
-    riskScore: 68
-  }
+    impactSummary: 'Harmonized 6-lens visual design system for dark/light themes.',
+    riskScore: 10,
+  },
 ];
 
 export const INITIAL_SYNTHESIS_REPORTS: SynthesisReport[] = [
   {
-    id: 'sr1',
-    title: 'Executive Velocity & Risk Report — Q4 W2',
-    date: '08 Nov 2026',
-    executionVelocityScore: 73,
-    aiNarrativeSummary: 'Engineering velocity is 2 weeks ahead on the core Authentication milestone. However, design handoff for Meridian visual graph nodes is currently lagging by 4 days due to resource constraints.',
+    id: 'syn-1',
+    title: 'Q3 Operational Velocity & Engineering Throughput',
+    date: '16 Sep 2026',
+    executionVelocityScore: 92,
+    aiNarrativeSummary: 'Engineering velocity rose 14% month-over-month. Security compliance is at 99.98% SLA with zero unauthorized cross-tenant alerts.',
     highlights: [
-      'Auth Service PKCE implementation reached 75% completion.',
-      'Code review turnaround time improved from 24h to 18h.',
-      'Luminary AI Assistant response latency reduced to < 400ms.'
+      'Multi-tenant database migration completed ahead of schedule',
+      'Bandwidth across Core Architecture remains balanced at 88% capacity',
+      'Zero unauthorized cross-tenant security alerts detected'
     ],
     risks: [
-      'Design team bandwidth load is currently at 92%.',
-      'Mass leave anomaly flagged for mid-November sprint end.'
-    ]
-  }
+      'Sprint bandwidth bottleneck if 2 critical deployments coincide'
+    ],
+  },
 ];
 
 export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
-    id: 'n1',
-    title: 'Checkpoint Sign-off Required',
-    message: 'Rohan Mehta requested budget approval for RDS Read Replica cluster.',
-    timestamp: '10 min ago',
-    type: 'urgent',
-    read: false
-  },
-  {
-    id: 'n2',
-    title: 'Meridian Milestone Warning',
-    message: 'API Gateway milestone is 2 days behind target velocity.',
-    timestamp: '1 hour ago',
+    id: 'notif-1',
+    title: 'Checkpoint Signoff Pending',
+    message: 'Vikram Singh submitted proof for Multi-Tenant Schema Validation.',
+    timestamp: '10m ago',
     type: 'warning',
-    read: false
+    read: false,
   },
   {
-    id: 'n3',
-    title: 'Synthesis Weekly Report Generated',
-    message: 'Q4 Week 2 executive summary is now ready for CEO review.',
-    timestamp: '3 hours ago',
+    id: 'notif-2',
+    title: 'Luminary Grid Synchronized',
+    message: 'All 8 team member telemetry streams are active and calibrated.',
+    timestamp: '1h ago',
     type: 'info',
-    read: true
-  }
+    read: true,
+  },
 ];
