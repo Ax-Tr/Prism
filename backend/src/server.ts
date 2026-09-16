@@ -25,6 +25,7 @@ import { errorHandler } from './middleware/error.middleware';
 const app = express();
 
 // Security and Observability Middleware
+app.set('trust proxy', 1);
 app.use(requestIdMiddleware);
 app.use(httpLoggerMiddleware);
 app.use(
