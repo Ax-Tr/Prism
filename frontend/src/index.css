@@ -3,45 +3,124 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --bg-primary: #050505;
-    --text-primary: #f8fafc;
-    --surface-glass: rgba(15, 23, 42, 0.65);
-    --border-glass: rgba(255, 255, 255, 0.08);
+  :root, .prism-dark {
+    --p-bg: #030303;
+    --p-bg-card: rgba(255, 255, 255, 0.024);
+    --p-bg-card-hover: rgba(255, 255, 255, 0.043);
+    --p-bg-card-2: rgba(255, 255, 255, 0.05);
+    --p-bg-input: rgba(255, 255, 255, 0.05);
+    --p-bg-pill: rgba(255, 255, 255, 0.05);
+    --p-bg-overlay: rgba(0, 0, 0, 0.8);
+    --p-surface: #0a0a0a;
+    --p-surface-2: #111111;
+    --p-border: rgba(255, 255, 255, 0.05);
+    --p-border-mid: rgba(255, 255, 255, 0.1);
+    --p-border-hi: rgba(255, 255, 255, 0.2);
+    --p-border-emp: rgba(255, 255, 255, 0.3);
+    --p-text-hi: #ffffff;
+    --p-text-body: rgba(255, 255, 255, 0.8);
+    --p-text-mid: rgba(255, 255, 255, 0.6);
+    --p-text-lo: rgba(255, 255, 255, 0.4);
+    --p-text-dim: rgba(255, 255, 255, 0.3);
+    --p-text-ghost: rgba(255, 255, 255, 0.2);
+    --p-text-whisper: rgba(255, 255, 255, 0.15);
+    --p-cyan: #22d3ee;
+    --p-purple: #c084fc;
+    --p-emerald: #10b981;
+    --p-rose: #f43f5e;
+    --p-amber: #f59e0b;
+    --p-indigo: #818cf8;
+    --p-blue: #60a5fa;
+    --p-cursor-blend: difference;
+    --bg-primary: #030303;
+    --text-primary: #ffffff;
   }
 
-  html.light, html.prism-light {
+  .prism-light {
+    --p-bg: #f2f0eb;
+    --p-bg-card: rgba(0, 0, 0, 0.035);
+    --p-bg-card-hover: rgba(0, 0, 0, 0.055);
+    --p-bg-card-2: rgba(0, 0, 0, 0.06);
+    --p-bg-input: rgba(0, 0, 0, 0.05);
+    --p-bg-pill: rgba(0, 0, 0, 0.06);
+    --p-bg-overlay: rgba(230, 228, 222, 0.9);
+    --p-surface: #eae8e3;
+    --p-surface-2: #e2e0da;
+    --p-border: rgba(0, 0, 0, 0.07);
+    --p-border-mid: rgba(0, 0, 0, 0.12);
+    --p-border-hi: rgba(0, 0, 0, 0.2);
+    --p-border-emp: rgba(0, 0, 0, 0.3);
+    --p-text-hi: #111010;
+    --p-text-body: rgba(17, 16, 16, 0.82);
+    --p-text-mid: rgba(17, 16, 16, 0.6);
+    --p-text-lo: rgba(17, 16, 16, 0.42);
+    --p-text-dim: rgba(17, 16, 16, 0.32);
+    --p-text-ghost: rgba(17, 16, 16, 0.22);
+    --p-text-whisper: rgba(17, 16, 16, 0.14);
+    --p-cyan: #0284c7;
+    --p-purple: #7c3aed;
+    --p-emerald: #059669;
+    --p-rose: #e11d48;
+    --p-amber: #d97706;
+    --p-indigo: #4f46e5;
+    --p-blue: #2563eb;
+    --p-cursor-blend: multiply;
     --bg-primary: #f2f0eb;
-    --text-primary: #0f172a;
-    --surface-glass: rgba(255, 255, 255, 0.75);
-    --border-glass: rgba(0, 0, 0, 0.08);
+    --text-primary: #111010;
   }
 
   body {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
+    background-color: var(--p-bg);
+    color: var(--p-text-body);
+    font-feature-settings: 'ss01' 1, 'ss02' 1;
+    overflow-x: hidden;
   }
 }
 
-.glass-panel {
-  background: rgba(11, 15, 25, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* Animations */
+@keyframes hero-blob-a {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.4; }
+  50% { transform: scale(1.2) rotate(45deg); opacity: 0.7; }
 }
 
-html.light .glass-panel, html.prism-light .glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+@keyframes hero-blob-b {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.3; }
+  50% { transform: scale(1.5) rotate(-45deg); opacity: 0.6; }
 }
 
-.prism-glow-cyan {
-  box-shadow: 0 0 25px -5px rgba(56, 189, 248, 0.25);
+@keyframes hero-blob-c {
+  0%, 100% { transform: translateX(0px) scale(1); opacity: 0.4; }
+  50% { transform: translateX(80px) scale(1.3); opacity: 0.7; }
 }
 
-.prism-glow-purple {
-  box-shadow: 0 0 25px -5px rgba(192, 132, 252, 0.25);
+@keyframes scan {
+  0% { top: -10%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 110%; opacity: 0; }
 }
+
+.hero-title {
+  letter-spacing: -0.04em;
+  font-size: clamp(2.5rem, 8vw, 9rem);
+  line-height: 1;
+}
+
+.page-wrap {
+  width: 100%;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: clamp(4rem, 8vh, 8rem) clamp(1rem, 4vw, 5rem) clamp(6rem, 12vh, 10rem);
+}
+
+.p-bg { background-color: var(--p-bg); }
+.p-bg-card { background-color: var(--p-bg-card); }
+.p-border { border-color: var(--p-border); }
+.p-border-mid { border-color: var(--p-border-mid); }
+.p-text-hi { color: var(--p-text-hi); }
+.p-text-body { color: var(--p-text-body); }
+.p-text-mid { color: var(--p-text-mid); }
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
@@ -60,25 +139,4 @@ html.light .glass-panel, html.prism-light .glass-panel {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.4);
-}
-
-@keyframes scan {
-  0% {
-    top: 0%;
-    opacity: 0;
-  }
-  15% {
-    opacity: 1;
-  }
-  85% {
-    opacity: 1;
-  }
-  100% {
-    top: 100%;
-    opacity: 0;
-  }
-}
-
-.animate-scan {
-  animation: scan 3.5s ease-in-out infinite;
 }

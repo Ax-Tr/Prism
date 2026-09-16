@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { AppProvider, useApp } from './context/AppContext';
@@ -6,10 +6,10 @@ import { TopHeader } from './components/common/TopHeader';
 import { BottomDock } from './components/common/BottomDock';
 import { NotificationsDrawer } from './components/common/NotificationsDrawer';
 import { LuminaryDrawer } from './components/common/LuminaryDrawer';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 import { LandingPage } from './components/landing/LandingPage';
 import { LoginModal } from './components/auth/LoginModal';
-import { GenesisWizard } from './components/genesis/GenesisWizard';
 import { SpectrumView } from './components/app/SpectrumView';
 import { TeamView } from './components/app/TeamView';
 import { KpiView } from './components/app/KpiView';
@@ -24,6 +24,7 @@ import { SynthesisView } from './components/app/SynthesisView';
 import { CalibrationView } from './components/app/CalibrationView';
 import { AuditLogView } from './components/app/AuditLogView';
 import { ExceptionsView } from './components/app/ExceptionsView';
+import { GenesisWizard } from './components/genesis/GenesisWizard';
 
 const WorkspaceRouter: React.FC = () => {
   const { activeTab } = useApp();
@@ -68,22 +69,22 @@ const WorkspaceRouter: React.FC = () => {
   }
 };
 
-import { ErrorBoundary } from './components/common/ErrorBoundary';
-
 const AppContent: React.FC = () => {
   const { activeTab } = useApp();
-  const isLanding = activeTab === 'landing';
+  const isLanding = activeTab === 'landing' || activeTab === 'login';
 
   return (
-    <div className="min-h-screen relative flex flex-col font-outfit">
+    <div className={`min-h-screen relative flex flex-col font-outfit ${isLanding ? '' : 'prism-workspace prism-enter'}`}>
       {!isLanding && <TopHeader />}
       <main className="flex-1">
         <ErrorBoundary fallbackTitle="Prism View Exception Intercepted">
-          <WorkspaceRouter />
+          <Suspense fallback={<div className="min-h-[50vh] flex items-center justify-center text-white/40 font-mono text-xs uppercase tracking-widest">Calibrating Core...</div>}>
+            <WorkspaceRouter />
+          </Suspense>
         </ErrorBoundary>
       </main>
-      <NotificationsDrawer />
-      <LuminaryDrawer />
+      {!isLanding && <NotificationsDrawer />}
+      {!isLanding && <LuminaryDrawer />}
       {!isLanding && <BottomDock />}
     </div>
   );
