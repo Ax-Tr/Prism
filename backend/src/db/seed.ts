@@ -366,6 +366,109 @@ export async function seedDatabase() {
     },
   });
 
+  // 13. Notifications
+  await prisma.notification.upsert({
+    where: { id: 'notif-001' },
+    update: {},
+    create: {
+      id: 'notif-001',
+      tenantId,
+      userId: userOwner,
+      title: 'Task Proof Awaiting Review',
+      message: 'Sarah Kim submitted proof for "Build Append-Only Audit Logging Middleware".',
+      type: 'PROOF_SUBMITTED',
+      channel: 'IN_APP',
+      deliveryStatus: 'DELIVERED',
+      read: false,
+      resourceId: t2,
+    },
+  });
+
+  await prisma.notification.upsert({
+    where: { id: 'notif-002' },
+    update: {},
+    create: {
+      id: 'notif-002',
+      tenantId,
+      userId: userDelegate,
+      title: 'Continuity Delegate Activated',
+      message: 'You have been assigned temporary signing authority for Operations during Marcus Chen’s leave.',
+      type: 'LEAVE_STATUS',
+      channel: 'WHATSAPP',
+      deliveryStatus: 'DELIVERED',
+      read: true,
+      resourceId: 'lv-001',
+    },
+  });
+
+  await prisma.notification.upsert({
+    where: { id: 'notif-003' },
+    update: {},
+    create: {
+      id: 'notif-003',
+      tenantId,
+      userId: userOwner,
+      title: 'Daily Performance Scores Computed',
+      message: 'All departments synchronized with 94.2% average tenant health score.',
+      type: 'SCORING_UPDATE',
+      channel: 'EMAIL',
+      deliveryStatus: 'DELIVERED',
+      read: true,
+    },
+  });
+
+  // 14. Recognitions
+  await prisma.recognition.upsert({
+    where: { id: 'rec-001' },
+    update: {},
+    create: {
+      id: 'rec-001',
+      tenantId,
+      fromUserId: userHeadEng,
+      toUserId: userEmp2,
+      coreValue: 'Velocity with Precision',
+      message: 'Outstanding speed delivering the SQLite to PostgreSQL migration scripts ahead of schedule!',
+      reactionsCount: 5,
+    },
+  });
+
+  await prisma.recognition.upsert({
+    where: { id: 'rec-002' },
+    update: {},
+    create: {
+      id: 'rec-002',
+      tenantId,
+      fromUserId: userOwner,
+      toUserId: userDelegate,
+      coreValue: 'Unbreakable Continuity',
+      message: 'Flawless execution during executive handover with zero operational downtime.',
+      reactionsCount: 8,
+    },
+  });
+
+  // 15. 360 Reviews
+  await prisma.review360.upsert({
+    where: { id: 'rev-001' },
+    update: {},
+    create: {
+      id: 'rev-001',
+      tenantId,
+      cycleName: 'Q4 2026 Executive & Peer Review',
+      targetUserId: userEmp1,
+      reviewerUserId: userHeadEng,
+      reviewType: 'manager',
+      competencies: JSON.stringify({
+        technicalExecution: 4.8,
+        collaboration: 4.5,
+        discipline: 4.9,
+        innovation: 4.6,
+      }),
+      feedback: 'Alex continues to be our anchor for architecture stability and audit integrity.',
+      status: 'submitted',
+      submittedAt: new Date(),
+    },
+  });
+
   console.log('✅ Prism database seeded successfully with all initial records!');
 }
 

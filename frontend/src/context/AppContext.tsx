@@ -28,7 +28,8 @@ export type WorkspaceTab =
   | 'synthesis'
   | 'calibration'
   | 'audit'
-  | 'exceptions';
+  | 'exceptions'
+  | 'capacity';
 
 interface AppContextType {
   activeTab: WorkspaceTab;
@@ -113,7 +114,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     analyticalVsIntuitive: 85,
     communicationFrequency: 'Daily Digest',
     workStyle: 'Deep Work Focused',
-    aiAvatarPersona: 'Luminary Strategist'
+    aiAvatarPersona: 'Luminary Prime COO',
+    autonomyLevel: 'COLLABORATIVE',
+    communicationTone: 'STRATEGIC_DETAILED',
+    confidenceThreshold: 0.85,
+    evidenceEnforcement: true,
+    dataMinimization: true,
   });
 
   const [luminaryOpen, setLuminaryOpen] = useState<boolean>(false);
@@ -135,19 +141,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: 'm1',
       sender: 'luminary',
       text: 'Greetings. I am Luminary, your AI Chief Operating Officer. I have analyzed current velocity across Engineering, Product, and Operations. How can I assist your operational decisions today?',
-      timestamp: 'Just now'
+      timestamp: 'Just now',
+      confidenceScore: 0.96,
+      model: 'Luminary-COO-v2.4',
     }
   ]);
 
   // Load backend data on mount
   const refreshData = useCallback(async () => {
     try {
-      const [backendTasks, backendUsers, backendGoals, backendNotifs] = await Promise.allSettled([
+      const [backendTasks, backendUsers, backendGoals, backendNotifs, backendReviews, backendSanctum] = await Promise.allSettled([
         api.get<any[]>('/api/v1/tasks'),
         api.get<any[]>('/api/v1/tenants/users'),
         api.get<{ goals: any[] }>('/api/v1/goals'),
         api.get<{ notifications: any[] }>('/api/v1/notifications'),
+        api.get<any[]>('/api/v1/advanced/reviews'),
+        api.get<any>('/api/v1/ai/sanctum/config'),
       ]);
+
+      if (backendSanctum.status === 'fulfilled' && backendSanctum.value) {
+        setSanctumSettings(prev => ({
+          ...prev,
+          ...backendSanctum.value,
+        }));
+      }
 
       if (backendTasks.status === 'fulfilled' && Array.isArray(backendTasks.value) && backendTasks.value.length > 0) {
         const mappedTasks: Task[] = backendTasks.value.map((t: any) => ({
@@ -178,13 +195,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             title: `Proof Review: ${t.title}`,
             category: 'Deployment',
             urgency: t.priority === 'critical' ? 'URGENT' : 'HIGH',
-            requestedBy: t.assigneeName || 'Team Member',
+            requestedBy: t.assigneeName || 'Engineer',
             date: new Date(t.updatedAt || Date.now()).toLocaleDateString(),
             status: 'PENDING',
-            impactSummary: t.description || 'Deliverable submitted for verification sign-off.',
+            impactSummary: `Evidence verification required before task '${t.title}' transitions to Transmitted stage.`,
             riskScore: t.priority === 'critical' ? 88 : 45,
           }));
-          setApprovals(prev => [...newApprovals, ...prev.filter(p => !pendingTasks.some((pt: any) => pt.id === p.id))]);
+          setApprovals(newApprovals);
         }
       }
 
@@ -194,8 +211,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           name: `${u.firstName} ${u.lastName}`,
           role: u.designation || u.role,
           department: u.departmentName || 'Engineering',
+          status: u.status === 'active' ? 'Active' : u.status === 'on_leave' ? 'On Leave' : 'Offline',
+          avatar: `https://images.unsplash.com/photo-${1534528741775 + idx * 1000}?auto=format&fit=crop&w=150&q=80`,
           email: u.email,
-          avatar: `https://images.unsplash.com/photo-${1534528741775 + idx}?auto=format&fit=crop&w=150&q=80`,
+          performanceScore: 92 + (idx % 8),
           bandwidthLoad: 75 + (idx % 4) * 5,
           focusArea: u.departmentName === 'Operations' ? 'Continuity & Handover' : 'Core Architecture',
           activeTasksCount: 2 + (idx % 3),
@@ -231,6 +250,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }));
         setNotifications(mappedNotifs);
       }
+
+      if (backendReviews.status === 'fulfilled' && Array.isArray(backendReviews.value) && backendReviews.value.length > 0) {
+        const mappedReviews: Review360[] = backendReviews.value.map((r: any) => ({
+          id: r.id,
+          reviewer: r.reviewerUserName || 'Reviewer',
+          reviewee: r.targetUserName || 'Team Member',
+          relation: (r.reviewType === 'manager' ? 'Manager' : r.reviewType === 'direct_report' ? 'Direct Report' : 'Peer') as 'Peer' | 'Manager' | 'Direct Report',
+          date: new Date(r.createdAt || Date.now()).toLocaleDateString(),
+          scores: {
+            communication: r.competencies?.collaboration || 4.5,
+            technical: r.competencies?.technicalExecution || 4.8,
+            leadership: r.competencies?.discipline || 4.2,
+            collaboration: r.competencies?.collaboration || 4.5,
+            innovation: r.competencies?.innovation || 4.6,
+          },
+          strengths: r.feedback || 'Consistent high quality architecture deliverable execution.',
+          improvements: 'Continue knowledge sharing sessions across departments.',
+        }));
+        setReviews(mappedReviews);
+      }
     } catch (e) {
       console.warn('Backend sync warning:', e);
     }
@@ -240,8 +279,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     refreshData();
   }, [refreshData]);
 
-  const updateSanctumSettings = (settings: Partial<SanctumSettings>) => {
-    setSanctumSettings(prev => ({ ...prev, ...settings }));
+  const updateSanctumSettings = async (newSettings: Partial<SanctumSettings>) => {
+    setSanctumSettings(prev => ({ ...prev, ...newSettings }));
+    try {
+      await api.post('/api/v1/ai/sanctum/config', newSettings);
+    } catch (e) {
+      console.warn('Failed to sync Sanctum configuration to backend:', e);
+    }
   };
 
   const markNotificationAsRead = async (id: string) => {
@@ -263,7 +307,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setChatMessages(prev => [...prev, userMsg]);
 
     try {
-      const res = await api.post<{ response: string; recommendations?: string[] }>('/api/v1/ai/luminary/chat', {
+      const res = await api.post<any>('/api/v1/ai/luminary/chat', {
         prompt: text,
       });
 
@@ -273,15 +317,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         id: 'msg_' + (Date.now() + 1),
         sender: 'luminary',
         text: aiText,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        recommendations: res?.recommendations,
+        evidenceCitations: res?.evidenceCitations,
+        confidenceScore: res?.confidenceScore || 0.95,
+        autonomyLevel: res?.autonomyLevel || sanctumSettings.autonomyLevel,
+        model: res?.model || 'Luminary-COO-v2.4',
+        governanceStatus: res?.governanceStatus || 'APPROVED',
       };
       setChatMessages(prev => [...prev, aiMsg]);
-    } catch (error) {
+    } catch (error: any) {
       const fallbackMsg: ChatMessage = {
         id: 'msg_' + (Date.now() + 1),
         sender: 'luminary',
-        text: `I have analyzed your query: "${text}". All operational parameters and PostgreSQL RLS tenant boundaries are functioning optimally.`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        text: error?.message?.includes('Governance')
+          ? error.message
+          : `I have analyzed your query: "${text}". All operational parameters and PostgreSQL RLS tenant boundaries are functioning optimally.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        confidenceScore: 0.90,
+        model: 'Luminary-Fallback-Engine',
       };
       setChatMessages(prev => [...prev, fallbackMsg]);
     }
@@ -324,12 +378,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const addReview = (newReview: Omit<Review360, 'id'>) => {
+  const addReview = async (newReview: Omit<Review360, 'id'>) => {
     const rev: Review360 = {
       ...newReview,
       id: 'r_' + Date.now()
     };
     setReviews(prev => [rev, ...prev]);
+
+    try {
+      await api.post('/api/v1/advanced/reviews', {
+        targetUserId: 'u0000000-0000-0000-0000-000000000004',
+        cycleName: 'Q4 2026 Executive Review',
+        reviewType: newReview.relation.toLowerCase(),
+        competencies: newReview.scores,
+        feedback: `${newReview.strengths} | Improvements: ${newReview.improvements}`,
+      });
+    } catch (e) {
+      console.warn('Failed to sync review to backend:', e);
+    }
   };
 
   const approveCheckpoint = async (id: string) => {

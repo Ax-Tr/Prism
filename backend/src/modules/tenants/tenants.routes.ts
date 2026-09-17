@@ -3,9 +3,22 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../../db/prisma';
 import { logAudit } from '../../db/audit';
 import { authMiddleware, AuthenticatedRequest } from '../../middleware/auth.middleware';
-import { requireRoles } from '../../middleware/rbac.middleware';
+import { requireRoles, ROLE_PERMISSIONS, ROLE_HIERARCHY } from '../../middleware/rbac.middleware';
 
 export const tenantsRouter = Router();
+
+// GET /api/v1/tenants/roles/permissions (PRD §28 Role Matrix)
+tenantsRouter.get('/roles/permissions', authMiddleware, (req: AuthenticatedRequest, res) => {
+  res.json({
+    success: true,
+    data: {
+      hierarchy: ROLE_HIERARCHY,
+      permissions: ROLE_PERMISSIONS,
+      userCurrentRole: req.user?.role,
+      userPermissions: req.user ? ROLE_PERMISSIONS[req.user.role as keyof typeof ROLE_PERMISSIONS] || [] : [],
+    },
+  });
+});
 
 // GET /api/v1/tenants/current
 tenantsRouter.get('/current', authMiddleware, async (req: AuthenticatedRequest, res) => {

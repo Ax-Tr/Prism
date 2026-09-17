@@ -1,4 +1,19 @@
-export type UserRole = 'CEO' | 'DEPT_HEAD' | 'MANAGER' | 'EMPLOYEE';
+export type UserRole =
+  | 'CEO'
+  | 'DEPT_HEAD'
+  | 'MANAGER'
+  | 'EMPLOYEE'
+  | 'owner'
+  | 'super_admin'
+  | 'executive'
+  | 'dept_head'
+  | 'manager'
+  | 'employee'
+  | 'delegate'
+  | 'hr'
+  | 'auditor'
+  | 'ai_admin'
+  | 'sys_admin';
 
 export interface User {
   id: string;
@@ -73,6 +88,11 @@ export interface SanctumSettings {
   communicationFrequency: 'Realtime' | 'Daily Digest' | 'Weekly Brief';
   workStyle: 'Deep Work Focused' | 'Hyper Collaborative' | 'Balanced';
   aiAvatarPersona: string;
+  autonomyLevel?: 'ADVISORY' | 'COLLABORATIVE' | 'AUTONOMOUS';
+  communicationTone?: 'EXECUTIVE_CONCISE' | 'STRATEGIC_DETAILED' | 'SOCRATIC_COACHING';
+  confidenceThreshold?: number;
+  evidenceEnforcement?: boolean;
+  dataMinimization?: boolean;
 }
 
 export interface Review360 {
@@ -144,11 +164,25 @@ export interface NotificationItem {
   read: boolean;
 }
 
+export interface GroundedEvidenceCitation {
+  id: string;
+  type: string;
+  title: string;
+  confidenceScore: number;
+  snippet: string;
+}
+
 export interface ChatMessage {
   id: string;
   sender: 'user' | 'luminary';
   text: string;
   timestamp: string;
+  recommendations?: string[];
+  evidenceCitations?: GroundedEvidenceCitation[];
+  confidenceScore?: number;
+  autonomyLevel?: string;
+  governanceStatus?: string;
+  model?: string;
 }
 
 export interface GenesisConfig {

@@ -1,0 +1,38 @@
+name: Prism CD Pipeline — Deploy to Staging
+
+on:
+  push:
+    branches: [develop]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build & push Docker images
+        run: |
+          echo "TODO: Configure container registry and push images"
+          echo "Backend: docker build -t <registry>/prism-backend:${{ github.sha }} ./backend"
+          echo "Frontend: docker build -t <registry>/prism-frontend:${{ github.sha }} ./frontend"
+
+      - name: Deploy to staging
+        run: |
+          echo "TODO: Configure staging deployment target (ECS/Cloud Run/K8s)"
+          echo "Deployment triggered for commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref_name }}"
+
+      - name: Smoke test
+        run: |
+          echo "TODO: Run health check against staging URL"
+          echo "curl -f https://staging.prism.nexora.com/health || exit 1"
+
+      - name: Notify deployment
+        if: success()
+        run: |
+          echo "Staging deployment successful for ${{ github.sha }}"

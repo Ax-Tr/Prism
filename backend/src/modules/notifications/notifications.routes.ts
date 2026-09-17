@@ -1,119 +1,110 @@
 import { Router } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import { prisma } from '../../db/prisma';
 import { logAudit } from '../../db/audit';
 import { authMiddleware, AuthenticatedRequest } from '../../middleware/auth.middleware';
-
-export interface NotificationItem {
-  id: string;
-  tenantId: string;
-  userId: string;
-  title: string;
-  message: string;
-  type: 'TASK_ASSIGNED' | 'PROOF_SUBMITTED' | 'PROOF_REVIEWED' | 'EXCEPTION_ESCALATED' | 'LEAVE_STATUS' | 'SCORING_UPDATE';
-  channel: 'IN_APP' | 'WHATSAPP' | 'EMAIL';
-  deliveryStatus: 'DELIVERED' | 'FALLBACK_EMAIL' | 'FALLBACK_IN_APP';
-  read: boolean;
-  resourceId?: string;
-  createdAt: string;
-}
-
-const notificationsStore: NotificationItem[] = [
-  {
-    id: 'notif-001',
-    tenantId: 'a0000000-0000-0000-0000-000000000001',
-    userId: 'u0000000-0000-0000-0000-000000000001',
-    title: 'Task Proof Awaiting Review',
-    message: 'Sarah Kim submitted proof for "Build Append-Only Audit Logging Middleware".',
-    type: 'PROOF_SUBMITTED',
-    channel: 'IN_APP',
-    deliveryStatus: 'DELIVERED',
-    read: false,
-    resourceId: 't0000000-0000-0000-0000-000000000002',
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-  },
-  {
-    id: 'notif-002',
-    tenantId: 'a0000000-0000-0000-0000-000000000001',
-    userId: 'u0000000-0000-0000-0000-000000000006',
-    title: 'Continuity Delegate Activated',
-    message: 'You have been assigned temporary signing authority for Operations during Marcus Chen’s leave.',
-    type: 'LEAVE_STATUS',
-    channel: 'WHATSAPP',
-    deliveryStatus: 'DELIVERED',
-    read: true,
-    resourceId: 'lv-001',
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: 'notif-003',
-    tenantId: 'a0000000-0000-0000-0000-000000000001',
-    userId: 'u0000000-0000-0000-0000-000000000001',
-    title: 'Daily Performance Scores Computed',
-    message: 'All departments synchronized with 94.2% average tenant health score.',
-    type: 'SCORING_UPDATE',
-    channel: 'EMAIL',
-    deliveryStatus: 'DELIVERED',
-    read: true,
-    createdAt: new Date(Date.now() - 14400000).toISOString(),
-  },
-];
+import { notificationService } from '../../services/notificationService';
 
 export const notificationsRouter = Router();
 
 // GET /api/v1/notifications
-notificationsRouter.get('/', authMiddleware, (req: AuthenticatedRequest, res) => {
-  const userNotifs = notificationsStore.filter((n) => n.tenantId === req.tenantId);
-  const unreadCount = userNotifs.filter((n) => !n.read).length;
+notificationsRouter.get('/', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userNotifs = await prisma.notification.findMany({
+      where: {
+        tenantId: req.tenantId!,
+        OR: [
+          { userId: req.user?.id },
+          { userId: 'all' },
+        ],
+      },
+      orderBy: { createdAt: 'desc' },
+    });
 
-  res.json({
-    success: true,
-    data: {
-      unreadCount,
-      total: userNotifs.length,
-      notifications: userNotifs,
-    },
-  });
+    const unreadCount = userNotifs.filter((n) => !n.read).length;
+
+    res.json({
+      success: true,
+      data: {
+        unreadCount,
+        total: userNotifs.length,
+        notifications: userNotifs,
+      },
+    });
+  } catch (error) {
+    console.error('Fetch notifications error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch notifications' });
+  }
 });
 
 // POST /api/v1/notifications/:id/read
-notificationsRouter.post('/:id/read', authMiddleware, (req: AuthenticatedRequest, res) => {
-  const notif = notificationsStore.find((n) => n.id === req.params.id);
-  if (!notif) {
-    res.status(404).json({ success: false, error: 'Notification not found' });
-    return;
-  }
+notificationsRouter.post('/:id/read', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const notif = await prisma.notification.findFirst({
+      where: {
+        id: req.params.id as string,
+        tenantId: req.tenantId!,
+      },
+    });
 
-  notif.read = true;
-  res.json({ success: true, data: notif });
+    if (!notif) {
+      res.status(404).json({ success: false, error: 'Notification not found' });
+      return;
+    }
+
+    const updated = await prisma.notification.update({
+      where: { id: notif.id },
+      data: { read: true },
+    });
+
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    console.error('Mark notification read error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update notification' });
+  }
 });
 
-// POST /api/v1/notifications/dispatch (Internal multi-channel dispatcher)
+// POST /api/v1/notifications/read-all
+notificationsRouter.post('/read-all', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    await prisma.notification.updateMany({
+      where: {
+        tenantId: req.tenantId!,
+        userId: req.user?.id,
+        read: false,
+      },
+      data: { read: true },
+    });
+
+    res.json({ success: true, message: 'All notifications marked as read' });
+  } catch (error) {
+    console.error('Mark all read error:', error);
+    res.status(500).json({ success: false, error: 'Failed to mark notifications read' });
+  }
+});
+
+// POST /api/v1/notifications/dispatch (Multi-channel fallback dispatcher)
 notificationsRouter.post('/dispatch', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
-    const { title, message, type, preferredChannel } = req.body;
+    const { title, message, type, preferredChannel, targetUserId, severity } = req.body;
 
     if (!title || !message) {
       res.status(400).json({ success: false, error: 'Title and message are required' });
       return;
     }
 
-    const channel = preferredChannel || 'IN_APP';
-    const deliveryStatus = 'DELIVERED';
+    const recipientId = targetUserId || req.user?.id || 'all';
 
-    const newNotif: NotificationItem = {
-      id: `notif-${Date.now()}-${uuidv4().substring(0, 4)}`,
+    const dispatchResult = await notificationService.dispatchWithFallback({
       tenantId: req.tenantId!,
-      userId: req.user?.id || 'all',
+      recipientId,
+      recipientName: req.user?.firstName || 'Team Member',
+      recipientEmail: req.user?.email,
       title,
       message,
-      type: type || 'TASK_ASSIGNED',
-      channel,
-      deliveryStatus,
-      read: false,
-      createdAt: new Date().toISOString(),
-    };
-
-    notificationsStore.unshift(newNotif);
+      eventType: type || 'TASK_ASSIGNED',
+      preferredChannel: preferredChannel || 'WHATSAPP',
+      severity: severity || 'medium',
+    });
 
     await logAudit({
       tenantId: req.tenantId!,
@@ -121,15 +112,82 @@ notificationsRouter.post('/dispatch', authMiddleware, async (req: AuthenticatedR
       actorRole: req.user?.role,
       action: 'NOTIFICATION_DISPATCHED',
       resourceType: 'notification',
-      resourceId: newNotif.id,
+      resourceId: dispatchResult.notificationId,
       ipAddress: req.ip || '127.0.0.1',
       userAgent: req.headers['user-agent'] as string,
-      payload: { title, channel, deliveryStatus },
+      payload: { title, channel: dispatchResult.deliveredChannel, fallbackUsed: dispatchResult.fallbackUsed },
     });
 
-    res.status(201).json({ success: true, data: newNotif });
+    res.status(201).json({
+      success: true,
+      data: dispatchResult,
+    });
   } catch (error) {
     console.error('Dispatch notification error:', error);
     res.status(500).json({ success: false, error: 'Failed to dispatch notification' });
+  }
+});
+
+// ============================================================================
+// ALERT LIFECYCLE (PRD §25)
+// ============================================================================
+
+// GET /api/v1/notifications/alerts
+notificationsRouter.get('/alerts', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const alerts = notificationService.getAlerts(req.tenantId!);
+    res.json({ success: true, data: alerts });
+  } catch (error) {
+    console.error('Fetch alerts error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch operational alerts' });
+  }
+});
+
+// POST /api/v1/notifications/alerts/trigger
+notificationsRouter.post('/alerts/trigger', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { title, description, severity, source } = req.body;
+    if (!title || !description) {
+      res.status(400).json({ success: false, error: 'title and description are required' });
+      return;
+    }
+
+    const newAlert = notificationService.createAlert(req.tenantId!, title, description, severity || 'high', source || 'UserTriggered');
+    res.status(201).json({ success: true, data: newAlert });
+  } catch (error) {
+    console.error('Trigger alert error:', error);
+    res.status(500).json({ success: false, error: 'Failed to trigger operational alert' });
+  }
+});
+
+// PATCH /api/v1/notifications/alerts/:id/transition
+notificationsRouter.patch('/alerts/:id/transition', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { targetStage } = req.body;
+
+    if (!targetStage) {
+      res.status(400).json({ success: false, error: 'targetStage is required' });
+      return;
+    }
+
+    const updatedAlert = notificationService.transitionAlert(req.tenantId!, id as string, targetStage, req.user?.id);
+
+    await logAudit({
+      tenantId: req.tenantId!,
+      actorId: req.user?.id,
+      actorRole: req.user?.role,
+      action: 'ALERT_LIFECYCLE_TRANSITIONED',
+      resourceType: 'operational_alert',
+      resourceId: id,
+      ipAddress: req.ip || '127.0.0.1',
+      userAgent: req.headers['user-agent'] as string,
+      payload: { targetStage, severity: updatedAlert.severity },
+    });
+
+    res.json({ success: true, data: updatedAlert });
+  } catch (error: any) {
+    console.error('Transition alert error:', error);
+    res.status(400).json({ success: false, error: error.message || 'Failed to transition alert stage' });
   }
 });

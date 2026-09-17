@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   Compass, Users, Target, UserCheck, CheckSquare, Trophy,
   RotateCcw, Calendar, GitPullRequest, ShieldCheck, BarChart3,
-  Sliders, Sparkles, MoreHorizontal, ChevronUp
+  Sliders, Sparkles, MoreHorizontal, ChevronUp, Briefcase
 } from 'lucide-react';
 import { useApp, WorkspaceTab } from '../../context/AppContext';
 
@@ -19,6 +19,7 @@ export const BottomDock: React.FC = () => {
   ];
 
   const secondaryTabs: { id: WorkspaceTab; label: string; icon: React.ReactNode }[] = [
+    { id: 'capacity', label: 'Capacity & Growth', icon: <Briefcase className="w-4 h-4 text-indigo-400" /> },
     { id: 'the', label: 'The (Leaderboard)', icon: <Trophy className="w-4 h-4" /> },
     { id: '360', label: '360° Review', icon: <RotateCcw className="w-4 h-4" /> },
     { id: 'attendance', label: 'Attendance', icon: <Calendar className="w-4 h-4" /> },

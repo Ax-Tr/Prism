@@ -1,0 +1,114 @@
+name: Prism CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ─── Lint & Type Check ───────────────────────────
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        workspace: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.workspace }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.workspace }}
+        run: npm ci
+
+      - name: Generate Prisma Client (backend only)
+        if: matrix.workspace == 'backend'
+        working-directory: backend
+        run: npx prisma generate
+
+      - name: TypeScript type check
+        working-directory: ${{ matrix.workspace }}
+        run: npx tsc --noEmit
+
+  # ─── Build ───────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: lint
+    strategy:
+      matrix:
+        workspace: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.workspace }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.workspace }}
+        run: npm ci
+
+      - name: Generate Prisma Client (backend only)
+        if: matrix.workspace == 'backend'
+        working-directory: backend
+        run: npx prisma generate
+
+      - name: Build
+        working-directory: ${{ matrix.workspace }}
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.workspace }}-dist
+          path: ${{ matrix.workspace }}/dist
+          retention-days: 7
+
+  # ─── Security Scan (SAST) ────────────────────────
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run npm audit (backend)
+        working-directory: backend
+        run: npm audit --audit-level=critical || true
+
+      - name: Run npm audit (frontend)
+        working-directory: frontend
+        run: npm audit --audit-level=critical || true
+
+  # ─── Docker Build ───────────────────────────────
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -t prism-backend:${{ github.sha }} ./backend
+
+      - name: Build frontend image
+        run: docker build -t prism-frontend:${{ github.sha }} ./frontend
+
+      - name: Verify images
+        run: |
+          docker images | grep prism
+          echo "Backend image size:"
+          docker inspect prism-backend:${{ github.sha }} --format='{{.Size}}' | numfmt --to=iec
+          echo "Frontend image size:"
+          docker inspect prism-frontend:${{ github.sha }} --format='{{.Size}}' | numfmt --to=iec

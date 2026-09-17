@@ -9,6 +9,7 @@ export interface AuthenticatedRequest extends Request {
   user?: User;
   tokenPayload?: AuthTokenPayload;
   tenantId?: string;
+  sessionId?: string;
 }
 
 export const authMiddleware = async (
@@ -28,6 +29,7 @@ export const authMiddleware = async (
     const decoded = jwt.verify(token, config.jwtSecret) as AuthTokenPayload;
     req.tokenPayload = decoded;
     req.tenantId = decoded.tenantId;
+    req.sessionId = decoded.sessionId;
 
     const foundUser = await prisma.user.findUnique({
       where: { id: decoded.userId },

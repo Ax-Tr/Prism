@@ -24,6 +24,7 @@ import { SynthesisView } from './components/app/SynthesisView';
 import { CalibrationView } from './components/app/CalibrationView';
 import { AuditLogView } from './components/app/AuditLogView';
 import { ExceptionsView } from './components/app/ExceptionsView';
+import { CapacitySkillsView } from './components/app/CapacitySkillsView';
 import { GenesisWizard } from './components/genesis/GenesisWizard';
 
 const WorkspaceRouter: React.FC = () => {
@@ -64,6 +65,8 @@ const WorkspaceRouter: React.FC = () => {
       return <AuditLogView />;
     case 'exceptions':
       return <ExceptionsView />;
+    case 'capacity':
+      return <CapacitySkillsView />;
     default:
       return <LandingPage />;
   }

@@ -9,6 +9,8 @@ import { requestIdMiddleware, httpLoggerMiddleware } from './middleware/requestI
 import { apiRateLimiter, authRateLimiter } from './middleware/rateLimiter.middleware';
 import { authRouter } from './modules/auth/auth.routes';
 import { tenantsRouter } from './modules/tenants/tenants.routes';
+import { usersRouter } from './modules/users/users.routes';
+import { departmentsRouter } from './modules/departments/departments.routes';
 import { tasksRouter } from './modules/tasks/tasks.routes';
 import { scoringRouter } from './modules/scoring/scoring.routes';
 import { continuityRouter } from './modules/continuity/continuity.routes';
@@ -20,6 +22,12 @@ import { goalsRouter } from './modules/goals/goals.routes';
 import { notificationsRouter } from './modules/notifications/notifications.routes';
 import { privacyRouter } from './modules/privacy/privacy.routes';
 import { advancedRouter } from './modules/advanced/advanced.routes';
+import { proofsRouter } from './modules/proofs/proofs.routes';
+import { integrationsRouter } from './modules/integrations/integrations.routes';
+import { workforceRouter } from './modules/workforce/workforce.routes';
+import { governanceRouter } from './modules/governance/governance.routes';
+import { analyticsRouter } from './modules/analytics/analytics.routes';
+import { complianceRouter } from './modules/compliance/compliance.routes';
 import { errorHandler } from './middleware/error.middleware';
 
 const app = express();
@@ -94,7 +102,10 @@ app.use('/api/v1/auth/register', authRateLimiter);
 // API Routes Mounting (TRD §5.1)
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/tenants', tenantsRouter);
+app.use('/api/v1/users', usersRouter);
+app.use('/api/v1/departments', departmentsRouter);
 app.use('/api/v1/tasks', tasksRouter);
+app.use('/api/v1/proofs', proofsRouter);
 app.use('/api/v1/scoring', scoringRouter);
 app.use('/api/v1/continuity', continuityRouter);
 app.use('/api/v1/exceptions', exceptionsRouter);
@@ -105,6 +116,11 @@ app.use('/api/v1/goals', goalsRouter);
 app.use('/api/v1/notifications', notificationsRouter);
 app.use('/api/v1/privacy', privacyRouter);
 app.use('/api/v1/advanced', advancedRouter);
+app.use('/api/v1/integrations', integrationsRouter);
+app.use('/api/v1/workforce', workforceRouter);
+app.use('/api/v1/governance', governanceRouter);
+app.use('/api/v1/analytics', analyticsRouter);
+app.use('/api/v1/compliance', complianceRouter);
 
 // Global Error Handler
 app.use(errorHandler);
