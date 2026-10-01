@@ -132,12 +132,19 @@ export const CheckpointView: React.FC = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glass-panel p-6 rounded-3xl border border-white/10">
         <div>
           <div className="flex items-center space-x-2">
-            <ShieldCheck className="w-5 h-5 text-rose-400" />
-            <span className="text-xs font-mono text-rose-400 uppercase tracking-widest">EXECUTIVE DECISION ROOM & CHECKPOINTS</span>
+            <ShieldCheck className="w-4 h-4 text-rose-400" />
+            <span className="text-[10px] font-mono text-rose-400 uppercase tracking-widest font-bold">
+              EXECUTIVE DECISION ROOM & CHECKPOINTS
+            </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">Checkpoints & Decision Memory</h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Centralized approval queue for high-impact sign-offs with AI risk scoring and immutable decision memory (PRD §13)
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mt-1">
+            <span>Decision </span>
+            <span style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontStyle: 'italic', fontWeight: 400 }}>
+              Checkpoints
+            </span>
+          </h1>
+          <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+            Centralized approval queue for high-impact sign-offs with AI risk scoring and immutable decision memory.
           </p>
         </div>
 

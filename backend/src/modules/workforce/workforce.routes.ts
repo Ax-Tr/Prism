@@ -115,7 +115,7 @@ workforceRouter.post('/skills/match-team', async (req: Request, res: Response) =
 workforceRouter.get('/career/paths/:userId', async (req: Request, res: Response) => {
   try {
     const tenantId = (req as any).user.tenantId;
-    const userId = req.params.userId;
+    const userId = req.params.userId as string;
 
     const careerPath = await careerService.getCareerPath(tenantId, userId);
     return res.status(200).json({ success: true, data: careerPath });

@@ -412,15 +412,22 @@ export const TasksView: React.FC = () => {
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 pb-32 animate-in fade-in duration-300">
       {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 glass-panel p-6 rounded-3xl border border-white/10 shadow-2xl">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl">
         <div>
           <div className="flex items-center space-x-2">
-            <CheckSquare className="w-5 h-5 text-sky-400" />
-            <span className="text-xs font-mono text-sky-400 uppercase tracking-widest">PROOF-DRIVEN ORBIT WORKFLOW & VERIFICATION (PRD §12)</span>
+            <CheckSquare className="w-4 h-4 text-sky-400" />
+            <span className="text-[10px] font-mono tracking-[0.2em] text-sky-400 uppercase font-bold">
+              PROOF-DRIVEN ORBIT WORKFLOW & VERIFICATION
+            </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">Work Engine & Proof Vault</h1>
-          <p className="text-xs text-slate-400 mt-1">
-            4-Stage Orbit state machine (Dormant $\rightarrow$ In-Flux $\rightarrow$ Orbit $\rightarrow$ Transmitted) with evidence-gated verification and multi-type proof artifacts.
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mt-1">
+            <span>Active </span>
+            <span style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontStyle: 'italic', fontWeight: 400 }}>
+              Vectors
+            </span>
+          </h1>
+          <p className="text-xs text-slate-400 mt-1 max-w-xl leading-relaxed">
+            4-Stage Orbit state machine (Dormant &rarr; In-Flux &rarr; Orbit &rarr; Transmitted) with evidence-gated verification and multi-type proof artifacts.
           </p>
         </div>
 

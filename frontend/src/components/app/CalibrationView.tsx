@@ -120,11 +120,18 @@ export const CalibrationView: React.FC = () => {
         <div>
           <div className="flex items-center space-x-2">
             <Sliders className="w-5 h-5 text-indigo-400" />
-            <span className="text-xs font-mono text-indigo-400 uppercase tracking-widest">TALENT CALIBRATION & GOVERNANCE</span>
+            <span className="text-[10px] font-mono text-indigo-400 uppercase tracking-widest font-bold">
+              TALENT CALIBRATION & GOVERNANCE
+            </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">9-Box Calibration & Compensation</h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Performance vs Potential calibration matrix, peer review normalization, and governed compensation recommendations (PRD §13, §24)
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mt-1">
+            <span>Talent </span>
+            <span style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontStyle: 'italic', fontWeight: 400 }}>
+              Calibration
+            </span>
+          </h1>
+          <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+            Performance vs Potential calibration matrix, peer review normalization, and governed compensation recommendations.
           </p>
         </div>
 

@@ -14,9 +14,11 @@ import api from '../lib/apiClient';
 export type WorkspaceTab =
   | 'landing'
   | 'login'
+  | 'enter'
   | 'genesis'
   | 'spectrum'
   | 'team'
+  | 'employee_detail'
   | 'kpis'
   | 'sanctum'
   | 'tasks'
@@ -29,7 +31,9 @@ export type WorkspaceTab =
   | 'calibration'
   | 'audit'
   | 'exceptions'
-  | 'capacity';
+  | 'capacity'
+  | 'tenant_admin'
+  | 'super_admin';
 
 interface AppContextType {
   activeTab: WorkspaceTab;

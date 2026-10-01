@@ -179,7 +179,7 @@ notificationsRouter.patch('/alerts/:id/transition', authMiddleware, async (req: 
       actorRole: req.user?.role,
       action: 'ALERT_LIFECYCLE_TRANSITIONED',
       resourceType: 'operational_alert',
-      resourceId: id,
+      resourceId: id as string,
       ipAddress: req.ip || '127.0.0.1',
       userAgent: req.headers['user-agent'] as string,
       payload: { targetStage, severity: updatedAlert.severity },

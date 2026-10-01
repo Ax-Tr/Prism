@@ -179,6 +179,24 @@ const Navbar: React.FC = () => {
 // -------------------------------------------------------------
 // 2. Hero Section Component
 // -------------------------------------------------------------
+const HERO_BLOB_STYLE = `
+  @keyframes hero-blob-a {
+    0%,100% { transform: scale(1)   rotate(0deg);   opacity: 0.4; }
+    50%      { transform: scale(1.2) rotate(45deg);  opacity: 0.7; }
+  }
+  @keyframes hero-blob-b {
+    0%,100% { transform: scale(1)   rotate(0deg);   opacity: 0.3; }
+    50%      { transform: scale(1.5) rotate(-45deg); opacity: 0.6; }
+  }
+  @keyframes hero-blob-c {
+    0%,100% { transform: translateX(0px)   scale(1);   opacity: 0.4; }
+    50%      { transform: translateX(80px) scale(1.3); opacity: 0.7; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-blob { animation: none !important; }
+  }
+`;
+
 const HeroSection: React.FC = () => {
   const { setActiveTab } = useApp();
   const targetRef = useRef<HTMLElement>(null);
@@ -198,6 +216,7 @@ const HeroSection: React.FC = () => {
       ref={targetRef}
       className="relative w-full min-h-screen bg-[#010101] flex flex-col items-center justify-center pt-32 pb-20 [perspective:1000px]"
     >
+      <style>{HERO_BLOB_STYLE}</style>
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div style={{ scale, opacity: bgOpacity }} className="w-full h-full relative">
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/80 z-10" />
@@ -251,7 +270,7 @@ const HeroSection: React.FC = () => {
           initial={{ opacity: 0, y: 40, rotateX: 20 }}
           animate={{ opacity: 1, y: 0, rotateX: 0 }}
           transition={{ duration: 1, delay: 0.1, type: 'spring', stiffness: 50 }}
-          className="text-[4rem] sm:text-[6.5rem] md:text-[8.5rem] lg:text-[11rem] font-bold tracking-tighter leading-[0.85] text-white mb-10 drop-shadow-2xl"
+          className="text-[4rem] sm:text-[6.5rem] md:text-[8.5rem] lg:text-[11rem] font-bold tracking-tighter leading-[0.85] text-white mb-10 drop-shadow-2xl font-sans"
         >
           People,
           <span className="relative inline-block mt-2">
@@ -366,6 +385,11 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   const scale = useTransform(smooth, [i * 0.25, 1], [1, targetScale]);
   const yParallax = useTransform(smooth, [0, 1], ['-10%', '10%']);
 
+  const rangeStart = (i - 0.5) * 0.25;
+  const rangeMid = i * 0.25;
+  const rangeEnd = (i + 0.5) * 0.25;
+  const rotateX3D = useTransform(smooth, [rangeStart, rangeMid, rangeEnd], [5, 0, -5]);
+
   const borderClass =
     color === 'indigo'
       ? 'border-indigo-500/50'
@@ -399,8 +423,8 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
       className="h-screen w-full flex items-center justify-center sticky top-0 z-10 [perspective:1000px] overflow-hidden"
     >
       <motion.div
-        style={{ scale, top: `calc(-5vh + ${i * 30}px)` } as any}
-        className={`group relative flex flex-col lg:flex-row w-full h-auto min-h-[65vh] lg:h-[600px] bg-[#0A0A0A] overflow-hidden border border-white/20 shadow-2xl ${borderClass} ${shadowClass} transition-colors duration-500 mx-0 max-w-[1400px] px-0`}
+        style={{ scale, rotateX: rotateX3D, top: `calc(-5vh + ${i * 30}px)` }}
+        className={`group relative flex flex-col lg:flex-row w-full h-auto min-h-[65vh] lg:h-[600px] bg-[#0A0A0A] overflow-hidden border border-white/20 shadow-2xl ${borderClass} ${shadowClass} transition-colors duration-500 mx-0`}
       >
         <div
           className="absolute inset-0 z-20 pointer-events-none opacity-[0.03] mix-blend-overlay"
@@ -425,16 +449,16 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
               </span>
             </div>
           </div>
-          <h3 className="text-3xl sm:text-4xl lg:text-5xl font-light tracking-tighter text-white mb-6 leading-[1.1]">
+          <h3 className="text-3xl sm:text-4xl lg:text-5xl font-light tracking-tighter text-white mb-6 leading-[1.1] font-sans">
             {title}
           </h3>
-          <p className="text-sm sm:text-base lg:text-lg text-zinc-300 font-light leading-relaxed">
+          <p className="text-sm sm:text-base lg:text-lg text-zinc-300 font-light leading-relaxed font-sans">
             {description}
           </p>
         </div>
 
         <div className="w-full lg:w-7/12 h-64 lg:h-full relative overflow-hidden bg-black flex items-center justify-center">
-          <motion.div style={{ y: yParallax } as any} className="absolute inset-0 w-full h-[120%]">
+          <motion.div style={{ y: yParallax }} className="absolute inset-0 w-full h-[120%]">
             <img
               src={image}
               alt={title}
@@ -583,7 +607,7 @@ const HowItWorksSection: React.FC = () => {
           <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(129,140,248,0.8)]" />
           How it works
         </div>
-        <h2 className="text-4xl sm:text-6xl md:text-[5rem] font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-white/50 mb-6 leading-[1.1]">
+        <h2 className="text-4xl sm:text-6xl md:text-[5rem] font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-white/50 mb-6 leading-[1.1] font-sans">
           From signal <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-rose-400">
             to understanding.
@@ -623,6 +647,25 @@ const HowItWorksSection: React.FC = () => {
               style={{ pathLength }}
             />
           </svg>
+          <svg className="absolute inset-0 w-full h-full md:hidden" viewBox="0 0 1000 1000" preserveAspectRatio="none" fill="none">
+            <defs>
+              <linearGradient id="pgm" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#818cf8" />
+                <stop offset="50%" stopColor="#c084fc" />
+                <stop offset="100%" stopColor="#fb7185" />
+              </linearGradient>
+            </defs>
+            <motion.line
+              x1="500"
+              y1="0"
+              x2="500"
+              y2="1000"
+              stroke="url(#pgm)"
+              strokeWidth="4"
+              strokeLinecap="round"
+              style={{ pathLength }}
+            />
+          </svg>
         </div>
 
         {PHASES.map((phase, idx) => {
@@ -642,10 +685,10 @@ const HowItWorksSection: React.FC = () => {
                   <span className={`inline-block px-2 py-0.5 text-[9px] font-mono uppercase tracking-widest text-white bg-gradient-to-r ${phase.color} rounded-sm mb-2`}>
                     Phase.0{idx + 1}
                   </span>
-                  <h3 className="text-xl font-semibold tracking-tight text-white mb-2 leading-tight">
+                  <h3 className="text-xl font-semibold tracking-tight text-white mb-2 leading-tight font-sans">
                     {phase.title}
                   </h3>
-                  <p className="text-sm text-zinc-300 font-light leading-relaxed">{phase.desc}</p>
+                  <p className="text-sm text-zinc-300 font-light leading-relaxed font-sans">{phase.desc}</p>
                 </div>
               </div>
 
@@ -676,10 +719,10 @@ const HowItWorksSection: React.FC = () => {
                         </span>
                         <div className="flex-1 h-px bg-white/10 group-hover:bg-white/30 transition-colors" />
                       </div>
-                      <h3 className="text-2xl lg:text-3xl xl:text-4xl font-semibold tracking-tight text-white mb-3 leading-tight">
+                      <h3 className="text-2xl lg:text-3xl xl:text-4xl font-semibold tracking-tight text-white mb-3 leading-tight font-sans">
                         {phase.title}
                       </h3>
-                      <p className="text-base lg:text-lg text-zinc-300 leading-relaxed font-light group-hover:text-zinc-100 transition-colors max-w-2xl">
+                      <p className="text-base lg:text-lg text-zinc-300 leading-relaxed font-light group-hover:text-zinc-100 transition-colors max-w-2xl font-sans">
                         {phase.desc}
                       </p>
                     </div>
@@ -712,10 +755,10 @@ const HowItWorksSection: React.FC = () => {
                           Phase.0{idx + 1}
                         </span>
                       </div>
-                      <h3 className="text-2xl lg:text-3xl xl:text-4xl font-semibold tracking-tight text-white mb-3 leading-tight">
+                      <h3 className="text-2xl lg:text-3xl xl:text-4xl font-semibold tracking-tight text-white mb-3 leading-tight font-sans">
                         {phase.title}
                       </h3>
-                      <p className="text-base lg:text-lg text-zinc-300 leading-relaxed font-light group-hover:text-zinc-100 transition-colors">
+                      <p className="text-base lg:text-lg text-zinc-300 leading-relaxed font-light group-hover:text-zinc-100 transition-colors font-sans">
                         {phase.desc}
                       </p>
                     </div>
@@ -733,6 +776,15 @@ const HowItWorksSection: React.FC = () => {
 // -------------------------------------------------------------
 // 5. Platform / Call-to-Action Scanner Section
 // -------------------------------------------------------------
+const SCAN_STYLE = `
+  @keyframes scan {
+    0% { top: -10%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 110%; opacity: 0; }
+  }
+`;
+
 const PlatformSection: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const { setActiveTab } = useApp();
@@ -751,7 +803,7 @@ const PlatformSection: React.FC = () => {
     >
       <motion.div
         style={{ scale, opacity, y, rotateX }}
-        className="group relative w-full aspect-square md:aspect-[21/9] flex flex-col items-center justify-center p-8 sm:p-24 overflow-hidden border-t border-b border-white/20 bg-gradient-to-b from-[#0A0A0A] to-[#020202] shadow-[0_0_100px_-20px_rgba(99,102,241,0.2)] max-w-[1760px] mx-auto"
+        className="group relative w-full aspect-square md:aspect-[21/9] flex flex-col items-center justify-center p-8 sm:p-24 overflow-hidden border-t border-b border-white/20 bg-gradient-to-b from-[#0A0A0A] to-[#020202] shadow-[0_0_100px_-20px_rgba(99,102,241,0.2)]"
       >
         <div className="absolute inset-0 z-0 bg-[linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:2rem_2rem] opacity-50 group-hover:opacity-70 transition-opacity duration-1000" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,transparent_0%,#010101_80%)] z-0" />
@@ -764,7 +816,7 @@ const PlatformSection: React.FC = () => {
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, delay: 0.2, type: 'spring' }}
             viewport={{ once: true }}
-            className="text-5xl sm:text-7xl md:text-[8rem] font-light tracking-tighter text-white mb-8 leading-[0.85] drop-shadow-2xl"
+            className="text-5xl sm:text-7xl md:text-[8rem] font-light tracking-tighter text-white mb-8 leading-[0.85] drop-shadow-2xl font-sans"
           >
             See your people <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-b from-zinc-300 to-zinc-600">
@@ -777,7 +829,7 @@ const PlatformSection: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.4 }}
             viewport={{ once: true }}
-            className="text-lg sm:text-2xl text-zinc-300 font-light max-w-2xl mx-auto mb-16 leading-relaxed"
+            className="text-lg sm:text-2xl text-zinc-300 font-light max-w-2xl mx-auto mb-16 leading-relaxed font-sans"
           >
             Every person on your team contains more than a score. Prism helps you understand what that means — and act on it.
           </motion.p>
@@ -809,6 +861,7 @@ const PlatformSection: React.FC = () => {
         <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-indigo-500/50 group-hover:border-white transition-colors duration-700" />
         <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-indigo-500/50 group-hover:border-white transition-colors duration-700" />
       </motion.div>
+      <style>{SCAN_STYLE}</style>
     </section>
   );
 };
@@ -849,7 +902,7 @@ const Footer: React.FC = () => {
               <a
                 key={item}
                 href="#"
-                className="text-zinc-300 hover:text-white transition-colors flex items-center gap-2 group text-sm"
+                className="text-zinc-300 hover:text-white transition-colors flex items-center gap-2 group text-sm font-sans"
               >
                 <span className="opacity-0 group-hover:opacity-100 transition-opacity text-indigo-500">{'>'}</span>
                 {item}
@@ -865,7 +918,7 @@ const Footer: React.FC = () => {
               <a
                 key={item}
                 href="#"
-                className="text-zinc-300 hover:text-white transition-colors flex items-center gap-2 group text-sm"
+                className="text-zinc-300 hover:text-white transition-colors flex items-center gap-2 group text-sm font-sans"
               >
                 <span className="opacity-0 group-hover:opacity-100 transition-opacity text-indigo-500">{'>'}</span>
                 {item}
@@ -882,7 +935,7 @@ const Footer: React.FC = () => {
               <a
                 key={item}
                 href="#"
-                className="text-zinc-300 hover:text-white transition-colors flex items-center gap-2 group text-sm"
+                className="text-zinc-300 hover:text-white transition-colors flex items-center gap-2 group text-sm font-sans"
               >
                 <span className="opacity-0 group-hover:opacity-100 transition-opacity text-indigo-500">{'>'}</span>
                 {item}

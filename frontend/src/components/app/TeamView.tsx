@@ -6,6 +6,8 @@ import {
   ChevronRight, Briefcase, Mail, Phone, Check, Eye
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useApp } from '../../context/AppContext';
+import { LIVE_EMPLOYEES } from '../../data/liveEmployees';
 import api from '../../lib/apiClient';
 
 interface UserDirectoryItem {
@@ -91,6 +93,7 @@ interface DigitalProfile {
 
 export const TeamView: React.FC = () => {
   const { currentUser } = useAuth();
+  const { setSelectedEmployeeProfile, setActiveTab: setAppActiveTab } = useApp();
 
   // State Management
   const [activeTab, setActiveTab] = useState<'DIRECTORY' | 'ORG_GRAPH' | 'TRANSPARENCY'>('DIRECTORY');
@@ -172,7 +175,7 @@ export const TeamView: React.FC = () => {
     fetchDirectoryData();
   }, []);
 
-  // 2. Fetch Digital Profile
+  // 2. Fetch Digital Profile & Refracted View
   const handleOpenProfile = async (user: UserDirectoryItem) => {
     setSelectedProfileUser(user);
     setProfileLoading(true);
@@ -187,6 +190,61 @@ export const TeamView: React.FC = () => {
     } finally {
       setProfileLoading(false);
     }
+  };
+
+  const openRefractedView = (user: UserDirectoryItem) => {
+    const match = LIVE_EMPLOYEES.find(e =>
+      e.id === user.id ||
+      e.name.toLowerCase() === user.fullName.toLowerCase() ||
+      e.name.toLowerCase().includes(user.firstName.toLowerCase())
+    ) || {
+      id: user.id,
+      name: user.fullName,
+      role: user.designation || user.role,
+      department: user.departmentName,
+      stage: 'Established',
+      avatar: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80`,
+      performanceScore: user.bandwidthLoad || 88,
+      attritionRisk: 'Low',
+      attritionRiskPercentage: 12,
+      trend: 'up',
+      learningProgress: 85,
+      recentFeedback: 'Consistent high quality architecture deliverable execution.',
+      nextPromotionEligibility: '4 Months',
+      skills: ['Leadership', 'System Design', 'Multi-Tenancy', 'PostgreSQL'],
+      revenueContribution: 320000,
+      costInvestment: 160000,
+      roi: 200,
+      motivationScore: 90,
+      welfareScore: 92,
+      engagementLevel: 'Hyper-Engaged',
+      dailyPerformance: [
+        { day: 'Mon', score: 92, hours: 8 },
+        { day: 'Tue', score: 95, hours: 8.5 },
+        { day: 'Wed', score: 88, hours: 7.5 },
+        { day: 'Thu', score: 94, hours: 8 },
+        { day: 'Fri', score: 90, hours: 8 }
+      ],
+      timesheets: [
+        { week: 'W1', hoursLogged: 40, utilizationRate: 95 },
+        { week: 'W2', hoursLogged: 42, utilizationRate: 98 },
+        { week: 'W3', hoursLogged: 38, utilizationRate: 92 },
+        { week: 'W4', hoursLogged: 40, utilizationRate: 96 }
+      ],
+      growthGoals: [
+        { id: 'g1', title: 'Operational scaling initiative', target: 100, current: 85, metric: '%' },
+        { id: 'g2', title: 'System architecture review signoff', target: 10, current: 8, metric: 'docs' }
+      ],
+      promotions: [
+        { from: 'Engineer', to: user.designation || 'Lead', date: 'Jan 2026', milestone: 'Exceeded deliverables' }
+      ],
+      feedback360: [
+        { reviewer: 'Dept Head', role: 'Leader', strengths: 'Strategic clarity and high execution speed.', improvements: 'Expand mentorship.', date: 'Oct 2026' }
+      ]
+    };
+
+    setSelectedEmployeeProfile(match as any);
+    setAppActiveTab('employee_detail');
   };
 
   // 3. Fetch Transparency Data
@@ -293,14 +351,21 @@ export const TeamView: React.FC = () => {
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8 pb-32 animate-in fade-in duration-300">
       {/* Header & View Switcher */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 glass-panel p-6 rounded-3xl border border-white/10 shadow-2xl">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl">
         <div>
           <div className="flex items-center space-x-2">
-            <Users className="w-5 h-5 text-purple-400" />
-            <span className="text-xs font-mono text-purple-400 uppercase tracking-widest">ENTERPRISE TALENT & STRUCTURE</span>
+            <Users className="w-4 h-4 text-purple-400" />
+            <span className="text-[10px] font-mono tracking-[0.2em] text-purple-400 uppercase font-bold">
+              ENTERPRISE TALENT & REORGANIZATION
+            </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">People, Departments & Org Graph</h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mt-1">
+            <span>Your </span>
+            <span style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontStyle: 'italic', fontWeight: 400 }}>
+              Team
+            </span>
+          </h1>
+          <p className="text-xs text-slate-400 mt-1 max-w-xl leading-relaxed">
             Searchable team roster, 9-role hierarchy graph, digital profiles, and employee transparency center (PRD §9)
           </p>
         </div>
@@ -311,20 +376,44 @@ export const TeamView: React.FC = () => {
             <>
               <button
                 onClick={() => setShowDeptModal(true)}
-                className="px-4 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 flex items-center space-x-2 transition-all"
+                className="px-4 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 flex items-center space-x-2 transition-all cursor-pointer"
               >
                 <Building2 className="w-4 h-4 text-purple-400" />
                 <span>New Department</span>
               </button>
               <button
                 onClick={() => setShowInviteModal(true)}
-                className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-purple-500/20 flex items-center space-x-2 transition-all"
+                className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-purple-500/20 flex items-center space-x-2 transition-all cursor-pointer"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>Invite Member</span>
               </button>
             </>
           )}
+        </div>
+      </div>
+
+      {/* Org Analytics Metrics Bar */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="glass-panel p-5 rounded-2xl border border-white/10 space-y-1">
+          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">TOTAL MEMBERS</span>
+          <div className="text-2xl font-mono font-extrabold text-white">12 <span className="text-xs text-slate-500">active</span></div>
+          <p className="text-[10px] font-mono text-emerald-400">100% telemetry synced</p>
+        </div>
+        <div className="glass-panel p-5 rounded-2xl border border-white/10 space-y-1">
+          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">AVERAGE COMPOSITE</span>
+          <div className="text-2xl font-mono font-extrabold text-purple-300">87.4 <span className="text-xs text-slate-500">/ 100</span></div>
+          <p className="text-[10px] font-mono text-emerald-400">+3.1% from Q3</p>
+        </div>
+        <div className="glass-panel p-5 rounded-2xl border border-white/10 space-y-1">
+          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">BANDWIDTH LOAD</span>
+          <div className="text-2xl font-mono font-extrabold text-sky-400">78% <span className="text-xs text-slate-500">optimal</span></div>
+          <p className="text-[10px] font-mono text-slate-400">Balanced deep-work</p>
+        </div>
+        <div className="glass-panel p-5 rounded-2xl border border-white/10 space-y-1">
+          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">CAPITAL ROI</span>
+          <div className="text-2xl font-mono font-extrabold text-emerald-400">3.2x <span className="text-xs text-slate-500">multiplier</span></div>
+          <p className="text-[10px] font-mono text-emerald-300">Top decile efficiency</p>
         </div>
       </div>
 
@@ -455,7 +544,10 @@ export const TeamView: React.FC = () => {
                       </div>
                     </div>
 
-                    <h3 className="text-base font-bold text-white mt-4 group-hover:text-purple-300 transition-colors">
+                    <h3
+                      onClick={() => openRefractedView(u)}
+                      className="text-base font-bold text-white mt-4 group-hover:text-purple-300 transition-colors cursor-pointer"
+                    >
                       {u.fullName}
                     </h3>
                     <p className="text-xs font-mono text-sky-400">{u.designation}</p>
@@ -492,16 +584,16 @@ export const TeamView: React.FC = () => {
                   <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between">
                     <button
                       onClick={() => setSelectedUserForPrep(u)}
-                      className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-slate-300 flex items-center space-x-1.5 transition-all"
+                      className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-slate-300 flex items-center space-x-1.5 transition-all cursor-pointer"
                     >
                       <MessageSquare className="w-3.5 h-3.5 text-purple-400" />
                       <span>1:1 Prep</span>
                     </button>
                     <button
-                      onClick={() => handleOpenProfile(u)}
-                      className="px-3.5 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 text-xs font-bold flex items-center space-x-1 border border-purple-500/30 transition-all"
+                      onClick={() => openRefractedView(u)}
+                      className="px-3.5 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 text-xs font-bold flex items-center space-x-1 border border-purple-500/30 transition-all cursor-pointer"
                     >
-                      <span>Profile</span>
+                      <span>Refracted View</span>
                       <ArrowUpRight className="w-3.5 h-3.5" />
                     </button>
                   </div>

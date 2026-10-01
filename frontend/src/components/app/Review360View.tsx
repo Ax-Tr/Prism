@@ -167,14 +167,21 @@ export const Review360View: React.FC = () => {
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8 pb-32">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glass-panel p-6 rounded-3xl border border-white/10">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl">
         <div>
           <div className="flex items-center space-x-2">
-            <RotateCcw className="w-5 h-5 text-indigo-400" />
-            <span className="text-xs font-mono text-indigo-400 uppercase tracking-widest">PEOPLE & COMPETENCY INTELLIGENCE</span>
+            <RotateCcw className="w-4 h-4 text-indigo-400" />
+            <span className="text-[10px] font-mono tracking-[0.2em] text-indigo-400 uppercase font-bold">
+              360° RADAR & RECOGNITION MATRIX
+            </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">360° Reviews, Recognition & 1:1 Intelligence</h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mt-1">
+            <span>Network </span>
+            <span style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontStyle: 'italic', fontWeight: 400 }}>
+              Resonance
+            </span>
+          </h1>
+          <p className="text-xs text-slate-400 mt-1 max-w-xl leading-relaxed">
             Competency radar evaluations, core value recognitions, and AI-synthesized 1:1 meeting preparation (PRD §10 & §14)
           </p>
         </div>

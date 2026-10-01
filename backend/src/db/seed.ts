@@ -42,7 +42,38 @@ export async function seedDatabase() {
     },
   });
 
-  // 2. Create CryptoKey
+  // Seed Primary SaaS Tenant: Axiora Technologies Inc.
+  const axioraTenantId = 'axiora-corp';
+  await prisma.tenant.upsert({
+    where: { id: axioraTenantId },
+    update: {
+      name: 'Axiora Technologies Inc.',
+      subdomain: 'axiora',
+      status: 'active',
+    },
+    create: {
+      id: axioraTenantId,
+      name: 'Axiora Technologies Inc.',
+      subdomain: 'axiora',
+      status: 'active',
+      settings: JSON.stringify({
+        default_timezone: 'Asia/Kolkata',
+        mfa_required_roles: ['owner', 'dept_head', 'delegate'],
+        max_proof_file_size_mb: 50,
+        auto_escalation_hours: 24,
+        scoring_weights: {
+          output: 0.25,
+          growth: 0.20,
+          motivation: 0.15,
+          wellbeing: 0.15,
+          return: 0.15,
+          risk: 0.10,
+        },
+      }),
+    },
+  });
+
+  // 2. Create CryptoKeys
   await prisma.cryptoKey.upsert({
     where: { tenantId_keyVersion: { tenantId, keyVersion: 1 } },
     update: {},
@@ -54,7 +85,36 @@ export async function seedDatabase() {
     },
   });
 
-  // 3. Create Departments
+  await prisma.cryptoKey.upsert({
+    where: { tenantId_keyVersion: { tenantId: axioraTenantId, keyVersion: 1 } },
+    update: {},
+    create: {
+      tenantId: axioraTenantId,
+      keyVersion: 1,
+      encryptedKeyMaterial: 'enc_key_axiora_v1_99999999999999999999999999999999999999999999999999',
+      status: 'active',
+    },
+  });
+
+  // 3. Create Departments for Axiora
+  const axioraDepts = [
+    { id: 'dept-axiora-exec', tenantId: axioraTenantId, name: 'Executive Leadership', code: 'EXEC' },
+    { id: 'dept-axiora-prod', tenantId: axioraTenantId, name: 'Product & Design', code: 'PROD' },
+    { id: 'dept-axiora-arch', tenantId: axioraTenantId, name: 'Core Architecture', code: 'ARCH' },
+    { id: 'dept-axiora-infra', tenantId: axioraTenantId, name: 'Data Infrastructure', code: 'INFRA' },
+    { id: 'dept-axiora-growth', tenantId: axioraTenantId, name: 'Growth & Marketing', code: 'GROWTH' },
+    { id: 'dept-axiora-ops', tenantId: axioraTenantId, name: 'Operations & Continuity', code: 'OPS' },
+  ];
+
+  for (const dept of axioraDepts) {
+    await prisma.department.upsert({
+      where: { id: dept.id },
+      update: {},
+      create: dept,
+    });
+  }
+
+  // 3b. Create Legacy Departments
   const depts = [
     { id: deptExec, tenantId, name: 'Executive Leadership', code: 'EXEC', headUserId: userOwner },
     { id: deptEng, tenantId, name: 'Engineering & Product', code: 'ENG', headUserId: userHeadEng, delegateUserId: userEmp1 },
@@ -72,6 +132,30 @@ export async function seedDatabase() {
 
   // 4. Create Users with bcrypt password hash for "Admin@123"
   const passwordHash = await bcrypt.hash('Admin@123', 10);
+
+  // Axiora Demo Roster
+  const axioraUsers = [
+    { id: 'u-axiora-1', tenantId: axioraTenantId, departmentId: 'dept-axiora-exec', email: 'ceo@axiora.com', passwordHash, firstName: 'Aarav', lastName: 'Sharma', role: 'owner', designation: 'Chief Executive Officer', phone: '+1-555-0100', status: 'active', mfaEnabled: true, failedLoginAttempts: 0 },
+    { id: 'u-axiora-1-alias', tenantId: axioraTenantId, departmentId: 'dept-axiora-exec', email: 'ceo@nexora.com', passwordHash, firstName: 'Aarav', lastName: 'Sharma', role: 'owner', designation: 'Chief Executive Officer', phone: '+1-555-0100', status: 'active', mfaEnabled: true, failedLoginAttempts: 0 },
+    { id: 'u-axiora-2', tenantId: axioraTenantId, departmentId: 'dept-axiora-prod', email: 'priya@axiora.com', passwordHash, firstName: 'Priya', lastName: 'Patel', role: 'dept_head', designation: 'VP of Product Design', phone: '+1-555-0101', status: 'active', mfaEnabled: true, failedLoginAttempts: 0 },
+    { id: 'u-axiora-2-alias', tenantId: axioraTenantId, departmentId: 'dept-axiora-prod', email: 'priya@nexora.com', passwordHash, firstName: 'Priya', lastName: 'Patel', role: 'dept_head', designation: 'VP of Product Design', phone: '+1-555-0101', status: 'active', mfaEnabled: true, failedLoginAttempts: 0 },
+    { id: 'u-axiora-3', tenantId: axioraTenantId, departmentId: 'dept-axiora-arch', email: 'arjun@axiora.com', passwordHash, firstName: 'Arjun', lastName: 'Sharma', role: 'delegate', designation: 'Lead Software Architect', phone: '+1-555-0102', status: 'active', mfaEnabled: true, failedLoginAttempts: 0 },
+    { id: 'u-axiora-3-alias', tenantId: axioraTenantId, departmentId: 'dept-axiora-arch', email: 'arjun@nexora.com', passwordHash, firstName: 'Arjun', lastName: 'Sharma', role: 'delegate', designation: 'Lead Software Architect', phone: '+1-555-0102', status: 'active', mfaEnabled: true, failedLoginAttempts: 0 },
+    { id: 'u-axiora-4', tenantId: axioraTenantId, departmentId: 'dept-axiora-infra', email: 'ravi@axiora.com', passwordHash, firstName: 'Ravi', lastName: 'Verma', role: 'employee', designation: 'Senior Backend Developer', phone: '+1-555-0103', status: 'active', mfaEnabled: false, failedLoginAttempts: 0 },
+    { id: 'u-axiora-4-alias', tenantId: axioraTenantId, departmentId: 'dept-axiora-infra', email: 'ravi@nexora.com', passwordHash, firstName: 'Ravi', lastName: 'Verma', role: 'employee', designation: 'Senior Backend Developer', phone: '+1-555-0103', status: 'active', mfaEnabled: false, failedLoginAttempts: 0 },
+    { id: 'u-axiora-5', tenantId: axioraTenantId, departmentId: 'dept-axiora-prod', email: 'neha@axiora.com', passwordHash, firstName: 'Neha', lastName: 'Gupta', role: 'employee', designation: 'Senior Product Designer', phone: '+1-555-0104', status: 'active', mfaEnabled: false, failedLoginAttempts: 0 },
+    { id: 'u-axiora-6', tenantId: axioraTenantId, departmentId: 'dept-axiora-arch', email: 'vikram@axiora.com', passwordHash, firstName: 'Vikram', lastName: 'Singh', role: 'employee', designation: 'DevOps & Reliability Engineer', phone: '+1-555-0105', status: 'active', mfaEnabled: false, failedLoginAttempts: 0 },
+    { id: 'u-axiora-7', tenantId: axioraTenantId, departmentId: 'dept-axiora-growth', email: 'kavya@axiora.com', passwordHash, firstName: 'Kavya', lastName: 'Reddy', role: 'employee', designation: 'Growth Marketing Lead', phone: '+1-555-0106', status: 'active', mfaEnabled: false, failedLoginAttempts: 0 },
+    { id: 'u-axiora-8', tenantId: axioraTenantId, departmentId: 'dept-axiora-ops', email: 'rohan@axiora.com', passwordHash, firstName: 'Rohan', lastName: 'Mehta', role: 'employee', designation: 'Product Operations Lead', phone: '+1-555-0107', status: 'active', mfaEnabled: false, failedLoginAttempts: 0 },
+  ];
+
+  for (const user of axioraUsers) {
+    await prisma.user.upsert({
+      where: { id: user.id },
+      update: { passwordHash, tenantId: axioraTenantId },
+      create: user,
+    });
+  }
 
   const users = [
     { id: userOwner, tenantId, departmentId: deptExec, email: 'owner@prism.ai', passwordHash, firstName: 'David', lastName: 'Vance', role: 'owner', designation: 'CEO & Founder', phone: '+1-555-0101', status: 'active', mfaEnabled: true, failedLoginAttempts: 0 },
@@ -317,18 +401,18 @@ export async function seedDatabase() {
   const todayStr = today.toISOString().split('T')[0];
   await prisma.dailyScore.upsert({
     where: { tenantId_userId_scoreDate: { tenantId, userId: userEmp1, scoreDate: todayStr } },
-    update: {},
-    create: { id: 'sc-001', tenantId, userId: userEmp1, departmentId: deptEng, scoreDate: todayStr, totalScore: 94.5, taskCompletionScore: 95.0, speedScore: 92.0, disciplineScore: 96.0, attendanceScore: 95.0, tasksAssigned: 3, tasksCompleted: 2, proofsApproved: 2 },
+    update: { totalScore: 94.5 },
+    create: { tenantId, userId: userEmp1, departmentId: deptEng, scoreDate: todayStr, totalScore: 94.5, taskCompletionScore: 95.0, speedScore: 92.0, disciplineScore: 96.0, attendanceScore: 95.0, tasksAssigned: 3, tasksCompleted: 2, proofsApproved: 2 },
   });
   await prisma.dailyScore.upsert({
     where: { tenantId_userId_scoreDate: { tenantId, userId: userEmp2, scoreDate: todayStr } },
-    update: {},
-    create: { id: 'sc-002', tenantId, userId: userEmp2, departmentId: deptEng, scoreDate: todayStr, totalScore: 91.0, taskCompletionScore: 90.0, speedScore: 88.0, disciplineScore: 94.0, attendanceScore: 92.0, tasksAssigned: 2, tasksCompleted: 1, proofsApproved: 1 },
+    update: { totalScore: 91.0 },
+    create: { tenantId, userId: userEmp2, departmentId: deptEng, scoreDate: todayStr, totalScore: 91.0, taskCompletionScore: 90.0, speedScore: 88.0, disciplineScore: 94.0, attendanceScore: 92.0, tasksAssigned: 2, tasksCompleted: 1, proofsApproved: 1 },
   });
   await prisma.dailyScore.upsert({
     where: { tenantId_userId_scoreDate: { tenantId, userId: userDelegate, scoreDate: todayStr } },
-    update: {},
-    create: { id: 'sc-003', tenantId, userId: userDelegate, departmentId: deptOps, scoreDate: todayStr, totalScore: 96.0, taskCompletionScore: 98.0, speedScore: 95.0, disciplineScore: 95.0, attendanceScore: 96.0, tasksAssigned: 2, tasksCompleted: 2, proofsApproved: 2 },
+    update: { totalScore: 96.0 },
+    create: { tenantId, userId: userDelegate, departmentId: deptOps, scoreDate: todayStr, totalScore: 96.0, taskCompletionScore: 98.0, speedScore: 95.0, disciplineScore: 95.0, attendanceScore: 96.0, tasksAssigned: 2, tasksCompleted: 2, proofsApproved: 2 },
   });
 
   // 11. System Exceptions

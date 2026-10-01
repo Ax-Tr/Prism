@@ -46,7 +46,8 @@ export class ScoringEngine {
       whereUser.departmentId = departmentId;
     }
 
-    const [tasks, users, recognitions, reviews, disputes] = await Promise.all([
+    const [tenant, tasks, users, recognitions, reviews, disputes] = await Promise.all([
+      prisma.tenant.findUnique({ where: { id: tenantId } }),
       prisma.task.findMany({
         where: whereTask,
         include: {
@@ -68,6 +69,48 @@ export class ScoringEngine {
       }),
     ]);
 
+    // Parse tenant custom spectral weights (PRD §16 Dynamic Spectral Calibration)
+    let rawWeights = {
+      output: 25,
+      risk: 20,
+      return: 20,
+      growth: 15,
+      presence: 10,
+      wellbeing: 10,
+    };
+
+    if (tenant?.settings) {
+      try {
+        const parsed = typeof tenant.settings === 'string' ? JSON.parse(tenant.settings) : tenant.settings;
+        if (parsed.spectral_weights) {
+          rawWeights = { ...rawWeights, ...parsed.spectral_weights };
+        } else if (parsed.scoring_weights) {
+          // Adapt 4-lens to 6-lens if legacy
+          rawWeights.output = (parsed.scoring_weights.task_completion || 0.4) * 60;
+          rawWeights.risk = (parsed.scoring_weights.discipline || 0.2) * 50;
+        }
+      } catch (e) {
+        console.warn('Failed to parse spectral weights from tenant settings');
+      }
+    }
+
+    const totalWeightSum =
+      (rawWeights.output || 0) +
+      (rawWeights.risk || 0) +
+      (rawWeights.return || 0) +
+      (rawWeights.growth || 0) +
+      (rawWeights.presence || 0) +
+      (rawWeights.wellbeing || 0) || 100;
+
+    const normWeights = {
+      output: (rawWeights.output || 25) / totalWeightSum,
+      risk: (rawWeights.risk || 20) / totalWeightSum,
+      return: (rawWeights.return || 20) / totalWeightSum,
+      growth: (rawWeights.growth || 15) / totalWeightSum,
+      presence: (rawWeights.presence || 10) / totalWeightSum,
+      wellbeing: (rawWeights.wellbeing || 10) / totalWeightSum,
+    };
+
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter((t) => t.status === 'completed');
     const blockedTasks = tasks.filter((t) => t.status === 'blocked');
@@ -76,7 +119,7 @@ export class ScoringEngine {
     const tasksWithApprovedProofs = tasks.filter((t) => t.proofs.some((p) => p.approvalStatus === 'accepted'));
     const linkedGoalTasks = tasks.filter((t) => t.priorityRel?.goalId !== null);
 
-    // 1. OUTPUT LENS (Weight: 25%) - PRD §16.1
+    // 1. OUTPUT LENS - PRD §16.1
     // Throughput, SLA speed, proof verification ratio
     let outputScore = 85;
     if (totalTasks > 0) {
@@ -90,7 +133,7 @@ export class ScoringEngine {
 
     const outputLens: LensMetricBreakdown = {
       score: outputScore,
-      weight: 0.25,
+      weight: parseFloat(normWeights.output.toFixed(3)),
       status: outputStatus,
       formulaVersion: 'OUTPUT-V2.4 (PRD §16.1)',
       contributingFactors: [
@@ -104,7 +147,7 @@ export class ScoringEngine {
       },
     };
 
-    // 2. RISK LENS (Weight: 20%) - PRD §16.2
+    // 2. RISK LENS - PRD §16.2
     // Blocker exposure, overdue aging, unresolved disputes
     let riskDeductions = blockedTasks.length * 15 + overdueTasks.length * 10 + disputes.length * 8;
     const riskScore = Math.max(10, Math.min(100, 100 - riskDeductions));
@@ -112,7 +155,7 @@ export class ScoringEngine {
 
     const riskLens: LensMetricBreakdown = {
       score: riskScore,
-      weight: 0.20,
+      weight: parseFloat(normWeights.risk.toFixed(3)),
       status: riskStatus,
       formulaVersion: 'RISK-V2.4 (PRD §16.2)',
       contributingFactors: [
@@ -127,7 +170,7 @@ export class ScoringEngine {
       },
     };
 
-    // 3. RETURN LENS (Weight: 20%) - PRD §16.3
+    // 3. RETURN LENS - PRD §16.3
     // Strategic priority alignment & multiplier efficiency
     let returnScore = 80;
     if (totalTasks > 0) {
@@ -143,7 +186,7 @@ export class ScoringEngine {
 
     const returnLens: LensMetricBreakdown = {
       score: returnScore,
-      weight: 0.20,
+      weight: parseFloat(normWeights.return.toFixed(3)),
       status: returnStatus,
       formulaVersion: 'RETURN-V2.4 (PRD §16.3)',
       contributingFactors: [
@@ -156,14 +199,14 @@ export class ScoringEngine {
       },
     };
 
-    // 4. GROWTH LENS (Weight: 15%) - PRD §16.4
+    // 4. GROWTH LENS - PRD §16.4
     // Peer recognitions, 360 review velocity, competency telemetry
     const growthScore = Math.min(100, Math.round(50 + recognitions.length * 8 + reviews.length * 10));
     const growthStatus = growthScore >= 80 ? 'EXEMPLARY' : 'OPTIMAL';
 
     const growthLens: LensMetricBreakdown = {
       score: growthScore,
-      weight: 0.15,
+      weight: parseFloat(normWeights.growth.toFixed(3)),
       status: growthStatus,
       formulaVersion: 'GROWTH-V2.4 (PRD §16.4)',
       contributingFactors: [
@@ -176,7 +219,7 @@ export class ScoringEngine {
       },
     };
 
-    // 5. PRESENCE LENS (Weight: 10%) - PRD §16.5
+    // 5. PRESENCE LENS - PRD §16.5
     // Team bandwidth allocation optimization (ideal 70%-90%)
     const avgBandwidth = users.length > 0 ? Math.round((totalTasks / (users.length * 3)) * 100) : 80;
     const presenceScore = Math.max(30, Math.min(100, 100 - Math.abs(avgBandwidth - 80) * 1.2));
@@ -184,7 +227,7 @@ export class ScoringEngine {
 
     const presenceLens: LensMetricBreakdown = {
       score: Math.round(presenceScore),
-      weight: 0.10,
+      weight: parseFloat(normWeights.presence.toFixed(3)),
       status: presenceStatus,
       formulaVersion: 'PRESENCE-V2.4 (PRD §16.5)',
       contributingFactors: [
@@ -197,7 +240,7 @@ export class ScoringEngine {
       },
     };
 
-    // 6. WELLBEING LENS (Weight: 10%) - PRD §16.6
+    // 6. WELLBEING LENS - PRD §16.6
     // Workload sustainability & non-invasive operational health index
     const highLoadUsers = users.filter(() => avgBandwidth > 95).length;
     const wellbeingScore = Math.max(40, Math.min(100, 95 - highLoadUsers * 10 - overdueTasks.length * 3));
@@ -205,7 +248,7 @@ export class ScoringEngine {
 
     const wellbeingLens: LensMetricBreakdown = {
       score: Math.round(wellbeingScore),
-      weight: 0.10,
+      weight: parseFloat(normWeights.wellbeing.toFixed(3)),
       status: wellbeingStatus,
       formulaVersion: 'WELLBEING-V2.4 (PRD §16.6)',
       contributingFactors: [
@@ -218,15 +261,15 @@ export class ScoringEngine {
       },
     };
 
-    // Composite Prism Velocity Index (PVI)
+    // Composite Prism Velocity Index (PVI) calculated dynamically via custom weights
     const velocityIndex = parseFloat(
       (
-        outputLens.score * outputLens.weight +
-        riskLens.score * riskLens.weight +
-        returnLens.score * returnLens.weight +
-        growthLens.score * growthLens.weight +
-        presenceLens.score * presenceLens.weight +
-        wellbeingLens.score * wellbeingLens.weight
+        outputLens.score * normWeights.output +
+        riskLens.score * normWeights.risk +
+        returnLens.score * normWeights.return +
+        growthLens.score * normWeights.growth +
+        presenceLens.score * normWeights.presence +
+        wellbeingLens.score * normWeights.wellbeing
       ).toFixed(1)
     );
 

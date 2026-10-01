@@ -15,6 +15,16 @@ export type UserRole =
   | 'ai_admin'
   | 'sys_admin';
 
+export interface Tenant {
+  id: string;
+  name: string;
+  subdomain: string;
+  status: 'active' | 'suspended' | 'shredded';
+  tier?: 'starter' | 'growth' | 'enterprise_sovereign';
+  seatLimit?: number;
+  allocatedSeats?: number;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -23,6 +33,10 @@ export interface User {
   department: string;
   title: string;
   avatar: string;
+  tenantId?: string;
+  tenantName?: string;
+  subdomain?: string;
+  tier?: string;
 }
 
 export interface Employee {

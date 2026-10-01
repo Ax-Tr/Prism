@@ -210,11 +210,13 @@ export const SynthesisView: React.FC = () => {
               Board-Ready Telemetry
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1 flex items-center gap-2">
-            <BarChart3 className="w-7 h-7 text-sky-400" />
-            Executive Synthesis & Strategic Intelligence
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mt-1">
+            <span>Executive </span>
+            <span style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontStyle: 'italic', fontWeight: 400 }}>
+              Synthesis
+            </span>
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
             Automated board briefings, cross-department efficiency rankings, flight risk early warnings, and custom KPI formula modeling.
           </p>
         </div>

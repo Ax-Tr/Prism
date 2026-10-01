@@ -3,7 +3,7 @@ import {
   GitPullRequest, Layers, Network, CheckCircle2, Clock,
   Plus, Target, TrendingUp, Edit3, X, ChevronRight, BarChart2,
   AlertTriangle, ShieldCheck, FileCheck, ArrowUpRight, RefreshCw,
-  Sliders, ChevronDown, Activity, Sparkles
+  Sliders, ChevronDown, Activity, Sparkles, Compass
 } from 'lucide-react';
 import api from '../../lib/apiClient';
 
@@ -191,15 +191,22 @@ export const MeridianView: React.FC = () => {
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 pb-32 animate-in fade-in duration-300">
       {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 glass-panel p-6 rounded-3xl border border-white/10 shadow-2xl">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl">
         <div>
           <div className="flex items-center space-x-2">
-            <GitPullRequest className="w-5 h-5 text-purple-400" />
-            <span className="text-xs font-mono text-purple-400 uppercase tracking-widest">STRATEGY CASCADE & OKR TRACEABILITY (PRD §11)</span>
+            <Compass className="w-4 h-4 text-purple-400" />
+            <span className="text-[10px] font-mono tracking-[0.2em] text-purple-400 uppercase font-bold">
+              STRATEGIC CASCADE & DEPENDENCIES
+            </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">Meridian Strategy & OKR Engine</h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Bidirectional strategic cascade linking corporate vision $\rightarrow$ strategic pillars $\rightarrow$ OKRs $\rightarrow$ department priorities $\rightarrow$ proof-verified tasks.
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mt-1">
+            <span>The </span>
+            <span style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontStyle: 'italic', fontWeight: 400 }}>
+              Meridian
+            </span>
+          </h1>
+          <p className="text-xs text-slate-400 mt-1 max-w-xl leading-relaxed">
+            Bidirectional strategic cascade linking corporate vision &rarr; strategic pillars &rarr; OKRs &rarr; department priorities &rarr; proof-verified tasks.
           </p>
         </div>
 

@@ -99,3 +99,48 @@ analyticsRouter.get('/export/csv', authMiddleware, async (req: AuthenticatedRequ
     res.status(500).json({ success: false, error: 'Failed to export executive CSV' });
   }
 });
+
+// GET /api/v1/analytics/telemetry/spectrum - Real-time multi-lens spectral telemetry (Sprint 3)
+analyticsRouter.get('/telemetry/spectrum', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const telemetry = await analyticsService.getTenantSpectralTelemetry(req.tenantId!);
+    res.json({ success: true, data: telemetry });
+  } catch (error) {
+    console.error('Fetch spectral telemetry error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch spectral telemetry' });
+  }
+});
+
+// GET /api/v1/analytics/quotas - Tenant usage metering & resource quotas (Sprint 3)
+analyticsRouter.get('/quotas', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const quotas = await analyticsService.getTenantQuotasAndMetering(req.tenantId!);
+    res.json({ success: true, data: quotas });
+  } catch (error) {
+    console.error('Fetch tenant quotas error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch tenant quotas' });
+  }
+});
+
+// POST /api/v1/analytics/telemetry/recalibrate - Recompute and persist daily scores & telemetry
+analyticsRouter.post('/telemetry/recalibrate', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const recalibrated = await analyticsService.recalibrateSpectralTelemetry(req.tenantId!);
+    await logAudit({
+      tenantId: req.tenantId!,
+      actorId: req.user?.id,
+      actorRole: req.user?.role,
+      action: 'SPECTRAL_TELEMETRY_RECALIBRATED',
+      resourceType: 'spectral_engine',
+      resourceId: req.tenantId!,
+      ipAddress: req.ip || '127.0.0.1',
+      userAgent: req.headers['user-agent'] as string,
+      payload: { velocityIndex: recalibrated.velocityIndex },
+    });
+    res.json({ success: true, data: recalibrated });
+  } catch (error) {
+    console.error('Recalibrate telemetry error:', error);
+    res.status(500).json({ success: false, error: 'Failed to recalibrate spectral telemetry' });
+  }
+});
+

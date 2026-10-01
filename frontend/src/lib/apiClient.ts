@@ -26,7 +26,8 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const token = this.getToken();
+    const rootToken = typeof window !== 'undefined' ? sessionStorage.getItem('prism_root_token') : null;
+    const token = (endpoint.includes('/superadmin') && rootToken) ? rootToken : this.getToken();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
@@ -49,13 +50,26 @@ class ApiClient {
         this.clearToken();
       }
 
-      const data: ApiResponse<T> = await response.json();
+      const contentType = response.headers.get('content-type') || '';
+      let data: ApiResponse<T>;
+
+      if (contentType.includes('application/json')) {
+        const text = await response.text();
+        try {
+          data = text ? JSON.parse(text) : { success: response.ok };
+        } catch {
+          data = { success: false, error: 'Malformed JSON server response' };
+        }
+      } else {
+        const text = await response.text();
+        data = { success: response.ok, error: text || `HTTP ${response.status}: ${response.statusText}` };
+      }
 
       if (!response.ok || !data.success) {
         throw new Error(data.error || `HTTP Error ${response.status}: ${response.statusText}`);
       }
 
-      return data.data as T;
+      return (data.data !== undefined ? data.data : data) as T;
     } catch (error: any) {
       console.warn(`[API Client] ${options.method || 'GET'} ${endpoint} failed:`, error.message);
       throw error;

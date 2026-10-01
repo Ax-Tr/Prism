@@ -64,7 +64,7 @@ governanceRouter.post('/checkpoints/:id/decide', async (req: Request, res: Respo
   try {
     const tenantId = (req as any).user.tenantId;
     const user = (req as any).user;
-    const checkpointId = req.params.id;
+    const checkpointId = req.params.id as string;
     const { decision, decisionNotes } = req.body;
 
     if (!['APPROVED', 'REJECTED', 'EVIDENCE_REQUESTED'].includes(decision)) {

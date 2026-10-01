@@ -222,11 +222,13 @@ export const AuditLogView: React.FC = () => {
                 SOC2 Type II Certified
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
-              <Shield className="w-7 h-7 text-indigo-400" />
-              Compliance, Immutable Audit & Launch Verification Hub
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white mt-1">
+              <span>Audit </span>
+              <span style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontStyle: 'italic', fontWeight: 400 }}>
+                Ledger
+              </span>
             </h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
               Append-only audit ledger with cryptographic SHA-256 integrity, multi-region DR telemetry, and SOC2 launch certification.
             </p>
           </div>

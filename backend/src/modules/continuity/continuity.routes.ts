@@ -90,7 +90,7 @@ continuityRouter.post('/leaves', async (req: Request, res: Response) => {
 continuityRouter.get('/leaves/:id/dossier', async (req: Request, res: Response) => {
   try {
     const tenantId = (req as any).user.tenantId;
-    const leaveId = req.params.id;
+    const leaveId = req.params.id as string;
 
     const leave = await prisma.leaveRequest.findFirst({ where: { id: leaveId, tenantId } });
     if (!leave) {
@@ -120,7 +120,7 @@ continuityRouter.post('/leaves/:id/emergency', async (req: Request, res: Respons
   try {
     const tenantId = (req as any).user.tenantId;
     const user = (req as any).user;
-    const leaveId = req.params.id;
+    const leaveId = req.params.id as string;
 
     const result = await continuityService.escalateEmergencyCoverage(tenantId, leaveId, user.id);
     return res.status(200).json({ success: true, data: result });
@@ -138,7 +138,7 @@ continuityRouter.post('/leaves/:id/handback', async (req: Request, res: Response
   try {
     const tenantId = (req as any).user.tenantId;
     const user = (req as any).user;
-    const leaveId = req.params.id;
+    const leaveId = req.params.id as string;
 
     const debrief = await continuityService.processReturnAndHandback(tenantId, leaveId, user.id);
     return res.status(200).json({ success: true, data: debrief });

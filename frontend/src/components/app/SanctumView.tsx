@@ -55,14 +55,21 @@ export const SanctumView: React.FC = () => {
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8 pb-32">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glass-panel p-6 rounded-3xl border border-white/10">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl">
         <div>
           <div className="flex items-center space-x-2">
-            <UserCheck className="w-5 h-5 text-sky-400" />
-            <span className="text-xs font-mono text-sky-400 uppercase tracking-widest">PERSONAL AVATAR & AI GOVERNANCE</span>
+            <UserCheck className="w-4 h-4 text-sky-400" />
+            <span className="text-[10px] font-mono tracking-[0.2em] text-sky-400 uppercase font-bold">
+              DIGITAL TWIN & AI GOVERNANCE
+            </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">Sanctum — Digital Twin Persona & Autonomy</h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mt-1">
+            <span>Sanctum </span>
+            <span style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontStyle: 'italic', fontWeight: 400 }}>
+              Control
+            </span>
+          </h1>
+          <p className="text-xs text-slate-400 mt-1 max-w-xl leading-relaxed">
             Configure your AI avatar behavioral parameters, autonomy tiers, PII minimization, and decision heuristics (PRD §19 & §20)
           </p>
         </div>

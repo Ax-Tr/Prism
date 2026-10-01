@@ -413,11 +413,13 @@ export const ExceptionsView: React.FC = () => {
                 PRD §21 Continuity & Handover
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
-              <AlertOctagon className="w-7 h-7 text-rose-400" />
-              Exception Handling, Incident Engine & Continuity Matrix
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white mt-1">
+              <span>Operational </span>
+              <span style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontStyle: 'italic', fontWeight: 400 }}>
+                Exceptions
+              </span>
             </h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
               Automated anomaly detection, 4-tier severity matrix, AI 5-Why root cause analysis, CAPA action generator, and SRE blameless post-mortems.
             </p>
           </div>

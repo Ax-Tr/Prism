@@ -181,6 +181,27 @@ export const LuminaryDrawer: React.FC = () => {
 
           {/* Input Form */}
           <form onSubmit={handleSend} className="p-3 border-t border-white/10 flex items-center space-x-2 bg-slate-950/60">
+            <button
+              type="button"
+              onClick={() => {
+                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                  const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+                  const recognition = new SpeechRec();
+                  recognition.lang = 'en-US';
+                  recognition.start();
+                  recognition.onresult = (event: any) => {
+                    const transcript = event.results[0][0].transcript;
+                    setInputText(prev => (prev ? prev + ' ' + transcript : transcript));
+                  };
+                } else {
+                  alert('Speech recognition not supported in this browser.');
+                }
+              }}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-sky-400 border border-white/10 transition-colors"
+              title="Speak prompt with microphone"
+            >
+              <Sparkles className="w-4 h-4" />
+            </button>
             <input
               type="text"
               value={inputText}
@@ -192,7 +213,7 @@ export const LuminaryDrawer: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting || !inputText.trim()}
-              className="p-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-950 font-semibold transition-all shadow-lg shadow-sky-500/20"
+              className="p-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-950 font-semibold transition-all shadow-lg shadow-sky-500/20 cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
             </button>

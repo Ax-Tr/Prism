@@ -246,11 +246,18 @@ export const CapacitySkillsView: React.FC = () => {
         <div>
           <div className="flex items-center space-x-2">
             <Briefcase className="w-5 h-5 text-indigo-400" />
-            <span className="text-xs font-mono text-indigo-400 uppercase tracking-widest">WORKFORCE & TALENT INTELLIGENCE</span>
+            <span className="text-[10px] font-mono text-indigo-400 uppercase tracking-widest font-bold">
+              WORKFORCE & TALENT INTELLIGENCE
+            </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">Capacity, Skills & Career Pathways</h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Real-time team bandwidth allocation, organizational scenario modeling, competency graph, and objective promotion readiness (PRD §15)
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mt-1">
+            <span>Capacity </span>
+            <span style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontStyle: 'italic', fontWeight: 400 }}>
+              Pathways
+            </span>
+          </h1>
+          <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+            Real-time team bandwidth allocation, organizational scenario modeling, competency graph, and objective promotion readiness.
           </p>
         </div>
         <div className="flex items-center gap-2">
