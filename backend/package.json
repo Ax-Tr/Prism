@@ -7,6 +7,8 @@
     "start": "node dist/server.js",
     "dev": "ts-node-dev src/server.ts",
     "seed": "ts-node src/db/seed.ts",
+    "test": "ts-node src/tests/api.test.ts",
+    "test:security": "ts-node src/tests/tenantIsolation.test.ts",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
     "db:generate": "prisma generate"

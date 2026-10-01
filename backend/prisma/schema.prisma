@@ -32,6 +32,12 @@ model Tenant {
   dailyScores           DailyScore[]
   systemExceptions      SystemException[]
   auditLogs             AuditLog[]
+  notifications         Notification[]
+  scoreDisputes         ScoreDispute[]
+  reviews               Review360[]
+  recognitions          Recognition[]
+  aiActions             AIAction[]
+  sessions              Session[]
 
   @@map("tenants")
 }
@@ -72,30 +78,58 @@ model Department {
 }
 
 model User {
-  id                  String      @id @default(uuid())
-  tenantId            String      @map("tenant_id")
-  departmentId        String?     @map("department_id")
+  id                  String         @id @default(uuid())
+  tenantId            String         @map("tenant_id")
+  departmentId        String?        @map("department_id")
   email               String
-  passwordHash        String      @map("password_hash")
-  firstName           String      @map("first_name")
-  lastName            String      @map("last_name")
-  role                String      // owner, dept_head, employee, delegate, auditor
+  passwordHash        String         @map("password_hash")
+  firstName           String         @map("first_name")
+  lastName            String         @map("last_name")
+  role                String         // owner, dept_head, employee, delegate, auditor
   designation         String?
   phone               String?
-  status              String      @default("active")
-  mfaEnabled          Boolean     @default(false) @map("mfa_enabled")
-  mfaSecret           String?     @map("mfa_secret")
-  failedLoginAttempts Int         @default(0) @map("failed_login_attempts")
-  lockoutUntil        DateTime?   @map("lockout_until")
-  lastLoginAt         DateTime?   @map("last_login_at")
-  createdAt           DateTime    @default(now()) @map("created_at")
-  updatedAt           DateTime    @updatedAt @map("updated_at")
+  status              String         @default("active")
+  mfaEnabled          Boolean        @default(false) @map("mfa_enabled")
+  mfaSecret           String?        @map("mfa_secret")
+  failedLoginAttempts  Int            @default(0) @map("failed_login_attempts")
+  lockoutUntil         DateTime?      @map("lockout_until")
+  lastLoginAt          DateTime?      @map("last_login_at")
+  passwordResetToken   String?        @map("password_reset_token")
+  passwordResetExpires DateTime?      @map("password_reset_expires")
+  createdAt            DateTime       @default(now()) @map("created_at")
+  updatedAt            DateTime       @updatedAt @map("updated_at")
 
-  tenant              Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  department          Department? @relation("DepartmentUsers", fields: [departmentId], references: [id], onDelete: SetNull)
+  tenant               Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  department           Department?    @relation("DepartmentUsers", fields: [departmentId], references: [id], onDelete: SetNull)
+  sessions             Session[]
+  notifications        Notification[]
+  disputes             ScoreDispute[]
+  reviewsReceived      Review360[]    @relation("ReviewTarget")
+  reviewsGiven         Review360[]    @relation("ReviewAuthor")
+  recognitionsGiven    Recognition[]  @relation("RecognitionSender")
+  recognitionsReceived Recognition[] @relation("RecognitionReceiver")
 
   @@unique([tenantId, email])
   @@map("users")
+}
+
+model Session {
+  id           String    @id @default(uuid())
+  tenantId     String    @map("tenant_id")
+  userId       String    @map("user_id")
+  tokenHash    String?   @map("token_hash")
+  ipAddress    String?   @map("ip_address")
+  userAgent    String?   @map("user_agent")
+  deviceInfo   String?   @map("device_info")
+  isActive     Boolean   @default(true) @map("is_active")
+  lastActiveAt DateTime  @default(now()) @map("last_active_at")
+  expiresAt    DateTime  @map("expires_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
 }
 
 model Goal {
@@ -246,25 +280,46 @@ model ContinuityAssignment {
 }
 
 model DailyScore {
-  id                  String   @id @default(uuid())
-  tenantId            String   @map("tenant_id")
-  userId              String   @map("user_id")
-  departmentId        String?  @map("department_id")
-  scoreDate           String   @map("score_date")
-  totalScore          Float    @map("total_score")
-  taskCompletionScore Float    @default(0) @map("task_completion_score")
-  speedScore          Float    @default(0) @map("speed_score")
-  disciplineScore     Float    @default(0) @map("discipline_score")
-  attendanceScore     Float    @default(0) @map("attendance_score")
-  tasksAssigned       Int      @default(0) @map("tasks_assigned")
-  tasksCompleted      Int      @default(0) @map("tasks_completed")
-  proofsApproved      Int      @default(0) @map("proofs_approved")
-  calculatedAt        DateTime @default(now()) @map("calculated_at")
+  id                  String         @id @default(uuid())
+  tenantId            String         @map("tenant_id")
+  userId              String         @map("user_id")
+  departmentId        String?        @map("department_id")
+  scoreDate           String         @map("score_date")
+  totalScore          Float          @map("total_score")
+  taskCompletionScore Float          @default(0) @map("task_completion_score")
+  speedScore          Float          @default(0) @map("speed_score")
+  disciplineScore     Float          @default(0) @map("discipline_score")
+  attendanceScore     Float          @default(0) @map("attendance_score")
+  tasksAssigned       Int            @default(0) @map("tasks_assigned")
+  tasksCompleted      Int            @default(0) @map("tasks_completed")
+  proofsApproved      Int            @default(0) @map("proofs_approved")
+  calculatedAt        DateTime       @default(now()) @map("calculated_at")
 
-  tenant              Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant              Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  disputes            ScoreDispute[]
 
   @@unique([tenantId, userId, scoreDate])
   @@map("daily_scores")
+}
+
+model ScoreDispute {
+  id              String     @id @default(uuid())
+  tenantId        String     @map("tenant_id")
+  userId          String     @map("user_id")
+  scoreId         String     @map("score_id")
+  reason          String
+  status          String     @default("OPEN")
+  adjustedScore   Float?     @map("adjusted_score")
+  reviewedBy      String?    @map("reviewed_by")
+  resolutionNotes String?    @map("resolution_notes")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  tenant          Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score           DailyScore @relation(fields: [scoreId], references: [id], onDelete: Cascade)
+
+  @@map("score_disputes")
 }
 
 model SystemException {
@@ -287,6 +342,80 @@ model SystemException {
   tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@map("system_exceptions")
+}
+
+model Notification {
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  userId         String   @map("user_id")
+  title          String
+  message        String
+  type           String   @default("SYSTEM")
+  channel        String   @default("IN_APP")
+  deliveryStatus String   @default("DELIVERED") @map("delivery_status")
+  read           Boolean  @default(false)
+  resourceId     String?  @map("resource_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Review360 {
+  id             String    @id @default(uuid())
+  tenantId       String    @map("tenant_id")
+  cycleName      String    @map("cycle_name")
+  targetUserId   String    @map("target_user_id")
+  reviewerUserId String    @map("reviewer_user_id")
+  reviewType     String    @map("review_type")
+  competencies   String
+  feedback       String?
+  status         String    @default("pending")
+  submittedAt    DateTime? @map("submitted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  targetUser     User      @relation("ReviewTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+  reviewerUser   User      @relation("ReviewAuthor", fields: [reviewerUserId], references: [id], onDelete: Cascade)
+
+  @@map("reviews_360")
+}
+
+model Recognition {
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  fromUserId     String   @map("from_user_id")
+  toUserId       String   @map("to_user_id")
+  coreValue      String   @map("core_value")
+  message        String
+  reactionsCount Int      @default(0) @map("reactions_count")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  fromUser       User     @relation("RecognitionSender", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser         User     @relation("RecognitionReceiver", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@map("recognitions")
+}
+
+model AIAction {
+  id           String   @id @default(uuid())
+  tenantId     String   @map("tenant_id")
+  userId       String?  @map("user_id")
+  agentName    String   @map("agent_name")
+  promptText   String   @map("prompt_text")
+  responseText String   @map("response_text")
+  actionType   String   @default("chat") @map("action_type")
+  riskScore    Float    @default(0.0) @map("risk_score")
+  flagged      Boolean  @default(false)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("ai_actions")
 }
 
 model AuditLog {

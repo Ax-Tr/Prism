@@ -4,6 +4,7 @@ import { prisma } from '../../db/prisma';
 import { logAudit } from '../../db/audit';
 import { authMiddleware, AuthenticatedRequest } from '../../middleware/auth.middleware';
 import { requireRoles } from '../../middleware/rbac.middleware';
+import { reviewService } from '../../services/reviewService';
 
 export const advancedRouter = Router();
 
@@ -252,3 +253,237 @@ advancedRouter.get('/promotion-readiness', authMiddleware, async (req: Authentic
     res.status(500).json({ success: false, error: 'Failed to fetch promotion readiness records' });
   }
 });
+
+// ============================================================================
+// 4. 360° COMPETENCY REVIEWS (PRD §14 FR-060, FR-061)
+// ============================================================================
+
+// GET /api/v1/advanced/reviews
+advancedRouter.get('/reviews', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const reviews = await prisma.review360.findMany({
+      where: { tenantId: req.tenantId },
+      include: {
+        targetUser: { select: { id: true, firstName: true, lastName: true, role: true } },
+        reviewerUser: { select: { id: true, firstName: true, lastName: true, role: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const enriched = reviews.map((r) => {
+      const isAnon = r.reviewType === 'peer';
+      return {
+        id: r.id,
+        cycleName: r.cycleName,
+        targetUserId: r.targetUserId,
+        targetUserName: `${r.targetUser.firstName} ${r.targetUser.lastName}`,
+        reviewerUserId: isAnon ? 'ANONYMOUS' : r.reviewerUserId,
+        reviewerUserName: isAnon ? 'Anonymous Peer Reviewer' : `${r.reviewerUser.firstName} ${r.reviewerUser.lastName}`,
+        reviewType: r.reviewType,
+        isAnonymous: isAnon,
+        competencies: typeof r.competencies === 'string' ? JSON.parse(r.competencies) : r.competencies,
+        feedback: r.feedback,
+        status: r.status,
+        submittedAt: r.submittedAt,
+        createdAt: r.createdAt,
+      };
+    });
+
+    res.json({ success: true, data: enriched });
+  } catch (error) {
+    console.error('Fetch reviews error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch 360 reviews' });
+  }
+});
+
+// GET /api/v1/advanced/reviews/matrix/:userId (PRD §14 FR-061)
+advancedRouter.get('/reviews/matrix/:userId', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { userId } = req.params;
+    const matrix = await reviewService.getCompetencyMatrix(req.tenantId!, userId as string);
+    res.json({ success: true, data: matrix });
+  } catch (error: any) {
+    console.error('Fetch competency matrix error:', error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to fetch competency matrix' });
+  }
+});
+
+// POST /api/v1/advanced/reviews
+advancedRouter.post('/reviews', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { targetUserId, cycleName, reviewType, competencies, feedback } = req.body;
+
+    if (!targetUserId || !cycleName || !competencies) {
+      res.status(400).json({ success: false, error: 'targetUserId, cycleName, and competencies are required' });
+      return;
+    }
+
+    const newReview = await prisma.review360.create({
+      data: {
+        tenantId: req.tenantId!,
+        targetUserId,
+        reviewerUserId: req.user?.id!,
+        cycleName,
+        reviewType: reviewType || 'peer',
+        competencies: typeof competencies === 'string' ? competencies : JSON.stringify(competencies),
+        feedback: feedback || '',
+        status: 'submitted',
+        submittedAt: new Date(),
+      },
+    });
+
+    await logAudit({
+      tenantId: req.tenantId!,
+      actorId: req.user?.id,
+      actorRole: req.user?.role,
+      action: 'REVIEW_360_SUBMITTED',
+      resourceType: 'review_360',
+      resourceId: newReview.id,
+      ipAddress: req.ip || '127.0.0.1',
+      userAgent: req.headers['user-agent'] as string,
+      payload: { targetUserId, cycleName, reviewType },
+    });
+
+    res.status(201).json({ success: true, data: newReview });
+  } catch (error) {
+    console.error('Submit review error:', error);
+    res.status(500).json({ success: false, error: 'Failed to submit review' });
+  }
+});
+
+// ============================================================================
+// 5. RECOGNITIONS & VALUES FEED WITH ANTI-GAMING (PRD §14 FR-062)
+// ============================================================================
+
+// GET /api/v1/advanced/recognitions
+advancedRouter.get('/recognitions', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { coreValue } = req.query;
+    const whereClause: any = { tenantId: req.tenantId };
+    if (coreValue) {
+      whereClause.coreValue = coreValue as string;
+    }
+
+    const recognitions = await prisma.recognition.findMany({
+      where: whereClause,
+      include: {
+        fromUser: { select: { id: true, firstName: true, lastName: true } },
+        toUser: { select: { id: true, firstName: true, lastName: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const enriched = recognitions.map((r) => ({
+      id: r.id,
+      fromUserId: r.fromUserId,
+      fromUserName: `${r.fromUser.firstName} ${r.fromUser.lastName}`,
+      toUserId: r.toUserId,
+      toUserName: `${r.toUser.firstName} ${r.toUser.lastName}`,
+      coreValue: r.coreValue,
+      message: r.message,
+      reactionsCount: r.reactionsCount,
+      createdAt: r.createdAt,
+    }));
+
+    res.json({ success: true, data: enriched });
+  } catch (error) {
+    console.error('Fetch recognitions error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch recognitions' });
+  }
+});
+
+// POST /api/v1/advanced/recognitions (with Anti-Gaming Guardrails)
+advancedRouter.post('/recognitions', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { toUserId, coreValue, message } = req.body;
+
+    if (!toUserId || !coreValue || !message) {
+      res.status(400).json({ success: false, error: 'toUserId, coreValue, and message are required' });
+      return;
+    }
+
+    const newRecognition = await reviewService.createRecognition(
+      req.tenantId!,
+      req.user?.id!,
+      toUserId,
+      coreValue,
+      message
+    );
+
+    await logAudit({
+      tenantId: req.tenantId!,
+      actorId: req.user?.id,
+      actorRole: req.user?.role,
+      action: 'RECOGNITION_POSTED',
+      resourceType: 'recognition',
+      resourceId: newRecognition.id,
+      ipAddress: req.ip || '127.0.0.1',
+      userAgent: req.headers['user-agent'] as string,
+      payload: { toUserId, coreValue },
+    });
+
+    res.status(201).json({ success: true, data: newRecognition });
+  } catch (error: any) {
+    console.error('Post recognition error:', error);
+    res.status(400).json({ success: false, error: error.message || 'Failed to post recognition' });
+  }
+});
+
+// POST /api/v1/advanced/recognitions/:id/react
+advancedRouter.post('/recognitions/:id/react', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const updated = await prisma.recognition.update({
+      where: { id: req.params.id as string },
+      data: {
+        reactionsCount: { increment: 1 },
+      },
+    });
+
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    console.error('React recognition error:', error);
+    res.status(500).json({ success: false, error: 'Failed to react to recognition' });
+  }
+});
+
+// ============================================================================
+// 6. 1:1 INTELLIGENCE & OUTCOME COMMITMENTS (PRD §10 FR-020, FR-021)
+// ============================================================================
+
+// GET /api/v1/advanced/one-on-one/prep/:userId
+advancedRouter.get('/one-on-one/prep/:userId', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { userId } = req.params;
+    const prepData = await reviewService.generateOneOnOnePrep(req.tenantId!, userId as string);
+    res.json({ success: true, data: prepData });
+  } catch (error: any) {
+    console.error('Generate 1:1 prep error:', error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to generate 1:1 prep agenda' });
+  }
+});
+
+// POST /api/v1/advanced/one-on-one/outcomes
+advancedRouter.post('/one-on-one/outcomes', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { targetUserId, summary, actionItems } = req.body;
+
+    if (!targetUserId || !summary) {
+      res.status(400).json({ success: false, error: 'targetUserId and summary are required' });
+      return;
+    }
+
+    const outcome = await reviewService.captureOneOnOneOutcome(
+      req.tenantId!,
+      req.user?.id!,
+      targetUserId,
+      summary,
+      Array.isArray(actionItems) ? actionItems : []
+    );
+
+    res.status(201).json(outcome);
+  } catch (error: any) {
+    console.error('Capture 1:1 outcome error:', error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to record 1:1 meeting outcomes' });
+  }
+});
+

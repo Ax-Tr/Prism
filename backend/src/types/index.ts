@@ -1,4 +1,15 @@
-export type UserRole = 'owner' | 'dept_head' | 'employee' | 'delegate' | 'auditor';
+export type UserRole =
+  | 'owner'
+  | 'super_admin'
+  | 'executive'
+  | 'dept_head'
+  | 'manager'
+  | 'employee'
+  | 'delegate'
+  | 'hr'
+  | 'auditor'
+  | 'ai_admin'
+  | 'sys_admin';
 
 export type TaskStatus = 'pending' | 'in_progress' | 'proof_submitted' | 'approved' | 'rejected' | 'completed' | 'blocked';
 
@@ -203,6 +214,7 @@ export interface AuditLogEntry {
 export interface AuthTokenPayload {
   userId: string;
   tenantId: string;
+  sessionId?: string;
   email: string;
   role: UserRole;
   departmentId?: string;
